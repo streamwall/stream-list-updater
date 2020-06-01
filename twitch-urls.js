@@ -1,6 +1,7 @@
 const {promisify} = require('util')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const {ChatClient} = require('dank-twitch-irc')
+const moment = require('moment-timezone')
 
 const SHEET_ID = process.env.SHEET_ID
 const CREDS = require('./creds.json')
@@ -77,6 +78,7 @@ async function main() {
         console.log(`[${displayName}] ${messageText}`)
         const row = addRow({
           URL: match.toString(),
+          Timestamp: moment().tz("America/Chicago").format('M/DD/YY HH:mm:ss'),
           Message: messageText,
           'Display Name': displayName,
         })
