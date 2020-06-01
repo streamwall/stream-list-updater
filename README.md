@@ -2,6 +2,8 @@
 
 A script to update the status of live streams listed in the [2020 George Floyd Protest Tracker](http://bit.ly/protestlinks) by [twitch.tv/woke](https://twitch.tv/woke).
 
+These tools use HTML scraping and hacks to get rapid information out of streaming websites with heterogeneous APIs. The methods employed will become stale over time.
+
 
 ## Installation
 
