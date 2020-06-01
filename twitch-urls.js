@@ -1,6 +1,6 @@
 const {promisify} = require('util')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
-const {ChatClient} = require("dank-twitch-irc")
+const {ChatClient} = require('dank-twitch-irc')
 
 const SHEET_ID = process.env.SHEET_ID
 const CREDS = require('./creds.json')
