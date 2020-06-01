@@ -24,9 +24,16 @@ function findString(platformName, string) {
 }
 
 const checkYTLive = findString('YouTube', `liveStreamability`)
-const checkFBLive = findString('Facebook', `"broadcast_status":"LIVE"`)
 const checkTwitchLive = findString('Twitch', `"isLiveBroadcast":true`)
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"/>`)
+
+const checkFBLive = async function(url) {
+  const result = await findString('Facebook', `"broadcast_status":"LIVE"`)(url)
+  if (result.title === 'Security Check Required') {
+    throw new Error('Facebook CAPTCHA required')
+  }
+  return result
+}
 
 function checkForStream(url) {
   if (url.startsWith('https://www.youtube.com') || url.startsWith('https://youtu.be')) {
