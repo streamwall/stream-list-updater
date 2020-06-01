@@ -19,17 +19,24 @@ const sleep = promisify(setTimeout)
 function findString(platformName, string) {
   return async function (url) {
     const res = await fetch(url)
-    const text = await res.text()
-    const isLive = text.includes(string)
-    const $ = cheerio.load(text)
+    const html = await res.text()
+    const isLive = html.includes(string)
+    const $ = cheerio.load(html)
     const title = $('title').text()
-    return {url, isLive, title, platformName}
+    return {url, isLive, html, title, platformName}
   }
 }
 
-const checkYTLive = findString('YouTube', `liveStreamability`)
 const checkTwitchLive = findString('Twitch', `"isLiveBroadcast":true`)
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"/>`)
+
+const checkYTLive = async function(url) {
+  const result = await findString('YouTube', `liveStreamability`)(url)
+  if (result.html.includes('Our systems have detected unusual traffic from your computer network.')) {
+    throw new Error('YouTube CAPTCHA required')
+  }
+  return result
+}
 
 const checkFBLive = async function(url) {
   const result = await findString('Facebook', `"broadcast_status":"LIVE"`)(url)
