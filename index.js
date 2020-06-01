@@ -3,8 +3,12 @@ const keyBy = require('lodash/keyBy')
 const cheerio = require('cheerio')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const moment = require('moment-timezone')
-const fetch = require('node-fetch')
+const nodeFetch = require('node-fetch')
 const {default: PQueue} = require('p-queue')
+
+const {cookieJar} = require('./cookies')
+
+const fetch = require('fetch-cookie')(nodeFetch, cookieJar)
 
 const SHEET_ID = process.env.SHEET_ID
 const TAB_NAMES = process.env.TAB_NAMES.split(',')
