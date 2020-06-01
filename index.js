@@ -73,7 +73,7 @@ async function main() {
         if (err.response && err.response.status === 429) {
           queue.pause()
           console.log('ratelimited. waiting 5s...')
-          await sleep(5000)
+          await sleep(10000)
           queue.start()
         } else {
           console.warn('error updating row', row.Link, err.toString())
