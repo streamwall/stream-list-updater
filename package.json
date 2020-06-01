@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "name": "stream-list-updater",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "google-spreadsheet": "^3.0.11",
+    "lodash": "^4.17.15",
+    "moment": "^2.26.0",
+    "moment-timezone": "^0.5.31",
+    "node-fetch": "^2.6.0",
+    "p-queue": "^6.4.0"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "license": "MIT"
+}
