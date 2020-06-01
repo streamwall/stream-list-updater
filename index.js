@@ -50,8 +50,10 @@ async function updateRow(row) {
   const result = await check(row.Link)
 
   row.Status = result.isLive ? 'Live' : 'Offline'
-  row['Title'] = result.title
   row['Last Checked (CST)'] = moment().tz("America/Chicago").format('M/DD/YY HH:mm:ss')
+  if (result.isLive) {
+    row['Title'] = result.title
+  }
   await row.save()
 }
 
