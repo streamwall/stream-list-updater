@@ -35,7 +35,7 @@ function checkForStream(url) {
     return checkFBLive
   } else if (url.startsWith('https://www.twitch.tv')) {
     return checkTwitchLive
-  } else if (url.startsWith('https://www.periscope.tv')) {
+  } else if (url.startsWith('https://www.periscope.tv') || url.startsWith('https://www.pscp.tv')) {
     return checkPeriscopeLive
   }
 }
