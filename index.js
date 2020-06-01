@@ -96,7 +96,7 @@ async function main() {
           await sleep(10000)
           queue.start()
         } else {
-          console.warn('error updating row', row.Link, err.toString())
+          console.warn('error updating row', row.Link, err)
         }
 
         if (tries > 3) {
