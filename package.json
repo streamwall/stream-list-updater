@@ -5,10 +5,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "twitch-urls": "node twitch-urls.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
+    "dank-twitch-irc": "^3.2.6",
     "google-spreadsheet": "^3.0.11",
     "lodash": "^4.17.15",
     "moment": "^2.26.0",

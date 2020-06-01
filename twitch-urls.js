@@ -1,0 +1,71 @@
+const {GoogleSpreadsheet} = require('google-spreadsheet')
+const {ChatClient} = require("dank-twitch-irc")
+
+const SHEET_ID = process.env.SHEET_ID
+const CREDS = require('./creds.json')
+
+const ignoreDisplayNames = new Set([
+  'StreamElements',
+])
+
+const interestingPrefixes = [
+  'www.youtube.com',
+  'youtu.be',
+  'www.facebook.com',
+  'www.instagram.com',
+  'www.periscope.tv',
+  'www.pscp.tv',
+  'www.twitch.tv',
+  'twitter.com/i/broadcasts',
+]
+
+const urlRe = /https?:\/\/[^ ]+/g
+
+async function main() {
+  const doc = new GoogleSpreadsheet(SHEET_ID)
+  await doc.useServiceAccountAuth(CREDS)
+  await doc.loadInfo()
+  const sheet = doc.sheetsByIndex[0]
+  await sheet.loadHeaderRow()
+
+  const client = new ChatClient()
+
+  client.on('ready', () => console.log('connected'))
+  client.on('close', err => {
+    if (err != null) {
+      console.error('disconnected due to error', error)
+    }
+  })
+
+  client.on('PRIVMSG', async msg => {
+    const {messageText, displayName} = msg
+
+    if (ignoreDisplayNames.has(displayName)) {
+      return
+    }
+
+    for (const match of messageText.matchAll(urlRe)) {
+      let url
+      try {
+        url = new URL(match)
+      } catch (err) {
+        continue
+      }
+
+      const urlStart = url.host + url.pathname
+      if (interestingPrefixes.some(p => urlStart.startsWith(p))) {
+        console.log(`[${displayName}] ${messageText}`)
+        const row = await sheet.addRow({
+          URL: match.toString(),
+          Message: messageText,
+          'Display Name': displayName,
+        })
+      }
+    }
+  })
+
+  client.connect()
+  client.join('woke')
+}
+
+main()
