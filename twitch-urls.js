@@ -1,8 +1,11 @@
+const {promisify} = require('util')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const {ChatClient} = require("dank-twitch-irc")
 
 const SHEET_ID = process.env.SHEET_ID
 const CREDS = require('./creds.json')
+
+const sleep = promisify(setTimeout)
 
 const ignoreDisplayNames = new Set([
   'StreamElements',
@@ -27,6 +30,23 @@ async function main() {
   await doc.loadInfo()
   const sheet = doc.sheetsByIndex[0]
   await sheet.loadHeaderRow()
+
+  async function addRow(data) {
+    let tries = 0
+
+    while (tries < 3) {
+      try {
+        const row = await sheet.addRow(data)
+      } catch (err) {
+        console.log('ratelimited. waiting 5s...')
+        await sleep(5000)
+        tries++
+        continue
+      }
+
+      return
+    }
+  }
 
   const client = new ChatClient()
 
@@ -55,7 +75,7 @@ async function main() {
       const urlStart = url.host + url.pathname
       if (interestingPrefixes.some(p => urlStart.startsWith(p))) {
         console.log(`[${displayName}] ${messageText}`)
-        const row = await sheet.addRow({
+        const row = addRow({
           URL: match.toString(),
           Message: messageText,
           'Display Name': displayName,
