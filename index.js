@@ -30,7 +30,7 @@ const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast
 function checkForStream(url) {
   if (url.startsWith('https://www.youtube.com') || url.startsWith('https://youtu.be')) {
     return checkYTLive
-  } else if (url.startsWith('https://www.facebook.com/watch/live')) {
+  } else if (url.startsWith('https://www.facebook.com')) {
     return checkFBLive
   } else if (url.startsWith('https://www.twitch.tv')) {
     return checkTwitchLive
