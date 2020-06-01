@@ -14,7 +14,7 @@ A script to update the status of live streams listed in the [2020 George Floyd P
 ### Update stream spreadsheet
 
 ```
-SHEET_ID=<sheets id from url> npm start
+SHEET_ID=<sheets id from url> TAB_NAMES='Current Streams,Previous Streams' npm start
 ```
 
 ### Collect URLs from Twitch chat
