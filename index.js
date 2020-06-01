@@ -7,6 +7,7 @@ const fetch = require('node-fetch')
 const {default: PQueue} = require('p-queue')
 
 const SHEET_ID = process.env.SHEET_ID
+const TAB_NAMES = process.env.TAB_NAMES.split(',')
 const CREDS = require('./creds.json')
 
 const sleep = promisify(setTimeout)
@@ -58,8 +59,8 @@ async function main() {
   const doc = new GoogleSpreadsheet(SHEET_ID)
   await doc.useServiceAccountAuth(CREDS)
   await doc.loadInfo()
-  const sheet = doc.sheetsByIndex[0]
-  const rows = await sheet.getRows()
+
+  const sheets = Object.values(doc.sheetsById).filter(s => TAB_NAMES.includes(s.title))
 
   const queue = new PQueue({concurrency: 10, autoStart: false})
 
@@ -88,11 +89,14 @@ async function main() {
     }
   }
 
-  for (const row of rows) {
-    if (!row.Link) {
-      continue
+  for (const sheet of sheets) {
+    const rows = await sheet.getRows()
+    for (const row of rows) {
+      if (!row.Link) {
+        continue
+      }
+      queue.add(tryRow(row))
     }
-    queue.add(tryRow(row))
   }
 
   queue.start()
