@@ -40,7 +40,7 @@ const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast
 const checkTwitchLive = async function(page, url) {
   const platformName = 'Twitch'
   await page.goto(url, {waitUntil: 'load'})
-  const liveIndicator$ = await page.$('.live-indicator')
+  const liveIndicator$ = await page.$('.live-indicator, .live-indicator-container')
   const isLive = !!liveIndicator$
   const title$ = await page.$('[data-a-target=stream-title]')
   let title
