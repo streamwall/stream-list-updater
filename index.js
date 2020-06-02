@@ -76,8 +76,14 @@ function checkForStream(url) {
   }
 }
 
-async function updateRow(page, row) {
+async function getRow(sheet, offset) {
+  const rows = await sheet.getRows({offset, limit: 1})
+  return rows[0]
+}
+
+async function updateRow(row, page) {
   const {Link} = row
+
   const check = checkForStream(row.Link)
   if (!check) {
     return
@@ -93,7 +99,7 @@ async function updateRow(page, row) {
   if (result.embed) {
     row['Embed Link'] = result.embed
   }
-  await row.save()
+  return row
 }
 
 async function main() {
@@ -102,11 +108,25 @@ async function main() {
   const browser = await puppeteer.launch({headless: false})
   const page = await browser.newPage()
 
-  function tryRow(row, tries=0) {
+  function tryRow(sheet, offset, tries=0) {
     return async function() {
       await sleep(tries * 5000)
+
       try {
-        await updateRow(page, row)
+        row = await getRow(sheet, offset)
+        if (!row || !row.Link) {
+          return
+        }
+
+        await updateRow(row, page)
+
+        // Verify that row is untouched before updating it
+        const checkRow = await getRow(sheet, offset)
+        if (!checkRow || checkRow.Link !== row.Link) {
+          console.log('row modified, skipping', row.Link)
+          return
+        }
+        await row.save()
       } catch (err) {
         if (err.response && err.response.status === 429) {
           queue.pause()
@@ -116,19 +136,19 @@ async function main() {
 	  return
         }
 
-        console.warn('error updating row', row.Link, err, 'waiting for nav...')
+        console.warn('error updating row', row && row.Link, err)
 	if (err.captcha) {
 	  console.log('waiting for captcha...')
 	  await page.waitForNavigation({timeout: 2 * 60 * 1000})
 	}
         if (!err.retryable || tries > 3) {
-          console.warn('giving up on row', row.Link)
+          console.warn('giving up on row', row && row.Link)
           return
         }
-        queue.add(tryRow(row, tries + 1))
+        queue.add(tryRow(sheet, offset, tries + 1))
         return
       }
-      console.log('updated', row.Link)
+      console.log('updated', row.Link, 'remaining', queue.size)
     }
   }
 
@@ -141,12 +161,8 @@ async function main() {
   
     const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
     for (const sheet of sheets) {
-      const rows = await sheet.getRows()
-      for (const row of rows) {
-        if (!row.Link) {
-          continue
-        }
-        queue.add(tryRow(row))
+      for (let offset = 0; offset < sheet.rowCount; offset++) {
+        queue.add(tryRow(sheet, offset))
       }
     }
   }
