@@ -13,23 +13,13 @@ These tools use HTML scraping and hacks to get rapid information out of streamin
 
 ## Scripts
 
-### Saving cookies
-
-Some streaming sites will return CAPTCHA security checks due to the frequency of requests. Solving these CAPTCHAs manually can help, as can signing in on these sites. Both require saving cookies.
-
-To add cookies to the "cookie jar" used for making requests:
-
-```
-npm run save-cookies 'https://www.website.com' 'cookie1; cookie2; cookie3'
-```
-
-You can get a list of these cookies by grabbing the `Cookie` field from a request in a browser network inspector.
-
-
 ### Update stream spreadsheet
 
+A browser window will open and automatically load up stream URLs. You will need to fill in CAPTCHAs occasionally.
+
+
 ```
-SHEET_ID=<sheets id from url> TAB_NAMES='Current Streams,Previous Streams' npm start
+SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' npm start
 ```
 
 ### Collect URLs from Twitch chat
