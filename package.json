@@ -16,7 +16,7 @@
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
     "p-queue": "^6.4.0",
-    "puppeteer": "^3.2.0",,
+    "puppeteer": "^3.2.0"
   },
   "engines": {
     "node": "12.x"
