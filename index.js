@@ -161,7 +161,9 @@ async function main() {
   
     const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
     for (const sheet of sheets) {
-      for (let offset = 0; offset < sheet.rowCount; offset++) {
+      // The header row is included in the row count but not the offset
+      const rowCount = sheet.rowCount - 1
+      for (let offset = 0; offset < rowCount; offset++) {
         queue.add(tryRow(sheet, offset))
       }
     }
