@@ -21,7 +21,7 @@ class CheckError extends Error {
 
 function findString(platformName, string) {
   return async function(page, url) {
-    await page.goto(url)
+    await page.goto(url, {waitUntil: 'domcontentloaded'})
     const html = await page.content()
     const isLive = html.includes(string)
     const $ = cheerio.load(html)
@@ -91,7 +91,7 @@ async function updateRow(page, row) {
 }
 
 async function main() {
-  const queue = new PQueue({concurrency: 1, interval: 5000, intervalCap: 1, autoStart: false})
+  const queue = new PQueue({concurrency: 1, interval: 2000, intervalCap: 1, autoStart: false})
 
   const browser = await puppeteer.launch({headless: false})
   const page = await browser.newPage()
