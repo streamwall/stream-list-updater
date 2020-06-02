@@ -78,7 +78,7 @@ async function main() {
         console.log(`[${displayName}] ${messageText}`)
         const row = addRow({
           URL: match.toString(),
-          Timestamp: moment().tz("America/Chicago").format('M/DD/YY HH:mm:ss'),
+          Timestamp: moment().tz("America/Chicago").format('M/D/YY HH:mm:ss'),
           Message: messageText,
           'Display Name': displayName,
         })
