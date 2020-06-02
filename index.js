@@ -3,23 +3,18 @@ const keyBy = require('lodash/keyBy')
 const cheerio = require('cheerio')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const moment = require('moment-timezone')
-const nodeFetch = require('node-fetch')
+const puppeteer = require('puppeteer')
 const {default: PQueue} = require('p-queue')
 
-const {cookieJar} = require('./cookies')
-
-const fetch = require('fetch-cookie')(nodeFetch, cookieJar)
-
-const SHEET_ID = process.env.SHEET_ID
-const TAB_NAMES = process.env.TAB_NAMES.split(',')
+const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
 const CREDS = require('./creds.json')
 
 const sleep = promisify(setTimeout)
 
 function findString(platformName, string) {
-  return async function (url) {
-    const res = await fetch(url)
-    const html = await res.text()
+  return async function(page, url) {
+    await page.goto(url)
+    const html = await page.content()
     const isLive = html.includes(string)
     const $ = cheerio.load(html)
     const title = $('title').text()
@@ -30,8 +25,8 @@ function findString(platformName, string) {
 const checkTwitchLive = findString('Twitch', `"isLiveBroadcast":true`)
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"/>`)
 
-const checkYTLive = async function(url) {
-  const result = await findString('YouTube', `liveStreamability`)(url)
+const checkYTLive = async function(page, url) {
+  const result = await findString('YouTube', `liveStreamability`)(page, url)
   if (result.html.includes('Our systems have detected unusual traffic from your computer network.')) {
     throw new Error('YouTube CAPTCHA required')
   }
@@ -40,10 +35,13 @@ const checkYTLive = async function(url) {
   return result
 }
 
-const checkFBLive = async function(url) {
-  const result = await findString('Facebook', `"broadcast_status":"LIVE"`)(url)
+const checkFBLive = async function(page, url) {
+  const result = await findString('Facebook', `"broadcast_status":"LIVE"`)(page, url)
   if (result.title === 'Security Check Required') {
     throw new Error('Facebook CAPTCHA required')
+  }
+  if (!result.html.includes('broadcast_status')) {
+    throw new Error('Facebook returned unexpected response')
   }
   result.embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=0`
   return result
@@ -61,14 +59,14 @@ function checkForStream(url) {
   }
 }
 
-async function updateRow(row) {
+async function updateRow(page, row) {
   const {Link} = row
   const check = checkForStream(row.Link)
   if (!check) {
     return
   }
 
-  const result = await check(row.Link)
+  const result = await check(page, row.Link)
 
   row.Status = result.isLive ? 'Live' : 'Offline'
   row['Last Checked (CST)'] = moment().tz("America/Chicago").format('M/D/YY HH:mm:ss')
@@ -82,19 +80,16 @@ async function updateRow(row) {
 }
 
 async function main() {
-  const doc = new GoogleSpreadsheet(SHEET_ID)
-  await doc.useServiceAccountAuth(CREDS)
-  await doc.loadInfo()
+  const queue = new PQueue({concurrency: 1, interval: 5000, intervalCap: 1, autoStart: false})
 
-  const sheets = Object.values(doc.sheetsById).filter(s => TAB_NAMES.includes(s.title))
-
-  const queue = new PQueue({concurrency: 10, autoStart: false})
+  const browser = await puppeteer.launch({headless: false})
+  const page = await browser.newPage()
 
   function tryRow(row, tries=0) {
     return async function() {
       await sleep(tries * 5000)
       try {
-        await updateRow(row)
+        await updateRow(page, row)
       } catch (err) {
         if (err.response && err.response.status === 429) {
           queue.pause()
@@ -102,7 +97,8 @@ async function main() {
           await sleep(10000)
           queue.start()
         } else {
-          console.warn('error updating row', row.Link, err)
+          console.warn('error updating row', row.Link, err, 'waiting for nav...')
+	  await page.waitForNavigation({timeout: 2 * 60 * 1000})
         }
 
         if (tries > 3) {
@@ -116,13 +112,22 @@ async function main() {
     }
   }
 
-  for (const sheet of sheets) {
-    const rows = await sheet.getRows()
-    for (const row of rows) {
-      if (!row.Link) {
-        continue
+  for (const sheet of SHEETS) {
+    const [sheetID, ...tabNames] = sheet
+
+    const doc = new GoogleSpreadsheet(sheetID)
+    await doc.useServiceAccountAuth(CREDS)
+    await doc.loadInfo()
+  
+    const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
+    for (const sheet of sheets) {
+      const rows = await sheet.getRows()
+      for (const row of rows) {
+        if (!row.Link) {
+          continue
+        }
+        queue.add(tryRow(row))
       }
-      queue.add(tryRow(row))
     }
   }
 

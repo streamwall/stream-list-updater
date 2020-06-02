@@ -6,22 +6,17 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "twitch-urls": "node twitch-urls.js",
-    "save-cookies": "node cookies.js"
+    "twitch-urls": "node twitch-urls.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
     "dank-twitch-irc": "^3.2.6",
-    "fetch-cookie": "^0.9.1",
     "google-spreadsheet": "^3.0.11",
     "lodash": "^4.17.15",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
-    "node-fetch": "^2.6.0",
     "p-queue": "^6.4.0",
-    "touch": "^3.1.0",
-    "tough-cookie": "^4.0.0",
-    "tough-cookie-file-store": "2.0.2"
+    "puppeteer": "^3.2.0",,
   },
   "engines": {
     "node": "12.x"
