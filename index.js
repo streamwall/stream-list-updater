@@ -35,6 +35,8 @@ const checkYTLive = async function(url) {
   if (result.html.includes('Our systems have detected unusual traffic from your computer network.')) {
     throw new Error('YouTube CAPTCHA required')
   }
+  const ytID = url.startsWith('https://youtu.be') ? url.split('youtu.be/')[1] : url.split('v=')[1]
+  result.embed = `https://www.youtube.com/embed/${ytID}`
   return result
 }
 
@@ -43,6 +45,7 @@ const checkFBLive = async function(url) {
   if (result.title === 'Security Check Required') {
     throw new Error('Facebook CAPTCHA required')
   }
+  result.embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=0`
   return result
 }
 
@@ -71,6 +74,9 @@ async function updateRow(row) {
   row['Last Checked (CST)'] = moment().tz("America/Chicago").format('M/DD/YY HH:mm:ss')
   if (result.isLive) {
     row['Title'] = result.title
+  }
+  if (result.embed) {
+    row['Embed Link'] = result.embed
   }
   await row.save()
 }
