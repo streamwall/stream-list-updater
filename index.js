@@ -1,5 +1,6 @@
 const {promisify} = require('util')
 const keyBy = require('lodash/keyBy')
+const fetch = require('node-fetch')
 const cheerio = require('cheerio')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const moment = require('moment-timezone')
@@ -8,6 +9,7 @@ const {default: PQueue} = require('p-queue')
 
 const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
 const CREDS = require('./creds.json')
+const YT_API_KEY = process.env.YT_API_KEY
 
 const sleep = promisify(setTimeout)
 
@@ -34,12 +36,16 @@ const checkTwitchLive = findString('Twitch', `"isLiveBroadcast":true`)
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"/>`)
 
 const checkYTLive = async function(page, url) {
-  const result = await findString('YouTube', `liveStreamability`)(page, url)
-  if (result.html.includes('Our systems have detected unusual traffic from your computer network.')) {
-    throw new CheckError({captcha: true, retryable: true}, 'YouTube CAPTCHA required')
-  }
+  const platformName = 'YouTube'
   const ytID = url.startsWith('https://youtu.be') ? url.split('youtu.be/')[1] : url.split('v=')[1]
-  result.embed = `https://www.youtube.com/embed/${ytID}`
+  const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${ytID}&key=${YT_API_KEY}&part=snippet`
+  const resp = await fetch(apiURL)
+  const data = await resp.json()
+  const firstItem = data.items[0]
+  const isLive = firstItem && firstItem.snippet.liveBroadcastContent === 'live'
+  const title = firstItem && firstItem.snippet.title
+  const embed = `https://www.youtube.com/embed/${ytID}`
+  const result = {url, isLive, title, platformName, embed}
   return result
 }
 
@@ -59,7 +65,7 @@ const checkFBLive = async function(page, url) {
 }
 
 function checkForStream(url) {
-  if (url.startsWith('https://www.youtube.com') || url.startsWith('https://youtu.be')) {
+  if (YT_API_KEY && (url.startsWith('https://www.youtube.com') || url.startsWith('https://youtu.be'))) {
     return checkYTLive
   } else if (url.startsWith('https://www.facebook.com')) {
     return checkFBLive
