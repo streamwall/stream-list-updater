@@ -45,7 +45,7 @@ const checkTwitchLive = async function(page, url) {
   const title$ = await page.$('[data-a-target=stream-title]')
   let title
   if (title$) {
-    title = title$.evaluate(n => n.textContent)
+    title = await title$.evaluate(n => n.textContent)
   }
   return {url, isLive, title, platformName}
 }
