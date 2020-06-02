@@ -148,6 +148,7 @@ async function main() {
   queue.start()
   await queue.onIdle()
   console.log('finished.')
+  await browser.close()
 }
 
 main()
