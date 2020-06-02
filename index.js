@@ -110,6 +110,7 @@ async function main() {
           return
         }
         queue.add(tryRow(row, tries + 1))
+        return
       }
       console.log('updated', row.Link)
     }
