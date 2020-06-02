@@ -159,7 +159,7 @@ async function main() {
         queue.add(tryRow(sheet, offset, tries + 1))
         return
       }
-      console.log('updated', row.Link, 'remaining', queue.size)
+      console.log('updated', row.Link, row.Status, `(remaining: ${queue.size})`)
     }
   }
 
