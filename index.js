@@ -21,11 +21,14 @@ class CheckError extends Error {
   }
 }
 
-function findString(platformName, string) {
+function findString(platformName, strings) {
   return async function(page, url) {
     await page.goto(url, {waitUntil: 'domcontentloaded'})
     const html = await page.content()
-    const isLive = html.includes(string)
+    if (!Array.isArray(strings)) {
+      strings = [strings]
+    }
+    const isLive = strings.some(s => html.includes(s))
     const $ = cheerio.load(html)
     const title = $('title').text()
     return {url, isLive, html, title, platformName}
@@ -50,7 +53,7 @@ const checkYTLive = async function(page, url) {
 }
 
 const checkFBLive = async function(page, url) {
-  const result = await findString('Facebook', `"broadcast_status":"LIVE"`)(page, url)
+  const result = await findString('Facebook', [`"broadcast_status":"LIVE"`, 'is_live_stream:true,'])(page, url)
   if (result.title === 'Security Check Required') {
     throw new CheckError({captcha: true, retryable: true}, 'Facebook CAPTCHA required')
   }
