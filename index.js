@@ -174,6 +174,10 @@ async function main() {
     for (const sheet of sheets) {
       const rows = await sheet.getRows()
       for (const [offset, row] of rows.entries()) {
+	if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
+          console.log('bot disabled. skipping sheet.')
+	  break
+	}
 	if (!row.Link) {
           continue
 	}
