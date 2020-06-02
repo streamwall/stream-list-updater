@@ -36,7 +36,7 @@ const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast
 const checkYTLive = async function(page, url) {
   const result = await findString('YouTube', `liveStreamability`)(page, url)
   if (result.html.includes('Our systems have detected unusual traffic from your computer network.')) {
-    throw new CheckError({captcha: true}, 'YouTube CAPTCHA required')
+    throw new CheckError({captcha: true, retryable: true}, 'YouTube CAPTCHA required')
   }
   const ytID = url.startsWith('https://youtu.be') ? url.split('youtu.be/')[1] : url.split('v=')[1]
   result.embed = `https://www.youtube.com/embed/${ytID}`
@@ -46,7 +46,7 @@ const checkYTLive = async function(page, url) {
 const checkFBLive = async function(page, url) {
   const result = await findString('Facebook', `"broadcast_status":"LIVE"`)(page, url)
   if (result.title === 'Security Check Required') {
-    throw new CheckError({captcha: true}, 'Facebook CAPTCHA required')
+    throw new CheckError({captcha: true, retryable: true}, 'Facebook CAPTCHA required')
   }
   if (!result.html.includes('broadcast_status')) {
     throw new CheckError({retryable: true}, 'Facebook returned unexpected response')
