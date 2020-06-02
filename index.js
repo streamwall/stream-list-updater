@@ -35,8 +35,16 @@ function findString(platformName, strings) {
   }
 }
 
-const checkTwitchLive = findString('Twitch', `"isLiveBroadcast":true`)
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"/>`)
+
+const checkTwitchLive = async function(page, url) {
+  const platformName = 'Twitch'
+  await page.goto(url)
+  const liveIndicator$ = await page.$('.live-indicator')
+  const isLive = !!liveIndicator$
+  const title = await page.$eval('[data-a-target=stream-title]', n => n.textContent)
+  return {url, isLive, title, platformName}
+}
 
 const checkYTLive = async function(page, url) {
   const platformName = 'YouTube'
