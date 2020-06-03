@@ -36,6 +36,7 @@ function findString(platformName, strings) {
 }
 
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"/>`)
+const checkInstagramLive = findString('Instagram', `"broadcast_status":"active"`)
 
 const checkTwitchLive = async function(page, url) {
   const platformName = 'Twitch'
@@ -88,6 +89,8 @@ function checkForStream(url) {
     return checkTwitchLive
   } else if (url.startsWith('https://www.periscope.tv') || url.startsWith('https://www.pscp.tv')) {
     return checkPeriscopeLive
+  } else if (url.startsWith('https://www.instagram.com')) {
+    return checkInstagramLive
   }
 }
 
