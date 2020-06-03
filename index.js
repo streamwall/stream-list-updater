@@ -43,6 +43,7 @@ const checkInstagramLive = findString('Instagram', `"broadcast_status":"active"`
 
 const checkTwitchLive = async function(page, url) {
   const platformName = 'Twitch'
+  const channelName = url.split('https://www.twitch.tv/')[1]
   await page.goto(url, {waitUntil: 'load'})
   const liveIndicator$ = await page.$('.live-indicator, .live-indicator-container')
   const isLive = !!liveIndicator$
@@ -51,7 +52,8 @@ const checkTwitchLive = async function(page, url) {
   if (title$) {
     title = await title$.evaluate(n => n.textContent)
   }
-  return {url, isLive, title, platformName}
+  const embed = `https://player.twitch.tv/?channel=${channelName}`
+  return {url, isLive, title, platformName, embed}
 }
 
 const checkYTLive = async function(page, url) {
