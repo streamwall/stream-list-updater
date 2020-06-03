@@ -70,9 +70,9 @@ const checkFBLive = async function(page, url) {
   if (result.title === 'Security Check Required') {
     throw new CheckError({captcha: true, retryable: true}, 'Facebook CAPTCHA required')
   } else if (result.html.includes(`This Content Isn't Available Right Now`)) {
-    result.status = 'Removed'
-  } else if (result.title === 'You must log in to continue') {
-    throw new CheckError('Facebook content now private')
+    result.isLive = false
+  } else if (result.html.includes('You must log in to continue')) {
+    result.isLive = false
   } else if (!result.html.includes('broadcast_status')) {
     throw new CheckError({retryable: true}, 'Facebook returned unexpected response')
   }
