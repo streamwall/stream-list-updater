@@ -84,15 +84,18 @@ const checkFBLive = async function(page, url) {
 }
 
 function checkForStream(url) {
-  if (YT_API_KEY && (url.startsWith('https://www.youtube.com') || url.startsWith('https://youtu.be'))) {
+  let {host} = new URL(url)
+  host = host.replace(/^www\./, '')
+
+  if (YT_API_KEY && (host === 'youtube.com' || host === 'youtu.be')) {
     return checkYTLive
-  } else if (url.startsWith('https://www.facebook.com')) {
+  } else if (host === 'facebook.com') {
     return checkFBLive
-  } else if (url.startsWith('https://www.twitch.tv')) {
+  } else if (host === 'twitch.tv') {
     return checkTwitchLive
-  } else if (url.startsWith('https://www.periscope.tv') || url.startsWith('https://www.pscp.tv')) {
+  } else if (host === 'periscope.tv' || host === 'pscp.tv') {
     return checkPeriscopeLive
-  } else if (url.startsWith('https://www.instagram.com')) {
+  } else if (host === 'instagram.com') {
     return checkInstagramLive
   }
 }
