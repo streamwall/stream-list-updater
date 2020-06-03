@@ -148,15 +148,15 @@ async function main() {
           console.log('ratelimited. waiting 5s...')
           await sleep(10000)
           queue.start()
-	  return
+          return
         }
 
         console.warn('error updating row', row && row.Link, err)
-	if (err.captcha) {
-	  console.log('waiting for captcha...')
-	  await sleep(5000)
-	  await page.waitForNavigation({timeout: 2 * 60 * 1000})
-	}
+        if (err.captcha) {
+          console.log('waiting for captcha...')
+          await sleep(5000)
+          await page.waitForNavigation({timeout: 2 * 60 * 1000})
+        }
         if (!err.retryable || tries > 3) {
           console.warn('giving up on row', row && row.Link)
           return
@@ -179,13 +179,13 @@ async function main() {
     for (const sheet of sheets) {
       const rows = await sheet.getRows()
       for (const [offset, row] of rows.entries()) {
-	if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
+        if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
           console.log('bot disabled. skipping sheet.')
-	  break
-	}
-	if (!row.Link) {
+          break
+        }
+        if (!row.Link) {
           continue
-	}
+        }
         queue.add(tryRow(sheet, offset))
       }
     }
