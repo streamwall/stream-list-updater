@@ -8,8 +8,11 @@ const puppeteer = require('puppeteer')
 const {default: PQueue} = require('p-queue')
 
 const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
+const UPDATE_SECONDS = process.env.UPDATE_SECONDS
 const CREDS = require('./creds.json')
 const YT_API_KEY = process.env.YT_API_KEY
+const TIMEZONE = 'America/Chicago'
+const DATE_FORMAT = 'M/D/YY HH:mm:ss'
 
 const sleep = promisify(setTimeout)
 
@@ -114,7 +117,7 @@ async function updateRow(row, page) {
   } else {
     row.Status = result.isLive ? 'Live' : 'Offline'
   }
-  row['Last Checked (CST)'] = moment().tz("America/Chicago").format('M/D/YY HH:mm:ss')
+  row['Last Checked (CST)'] = moment().tz(TIMEZONE).format(DATE_FORMAT)
   if (result.isLive) {
     row['Title'] = result.title
   }
@@ -192,6 +195,13 @@ async function main() {
         }
         if (!row.Link) {
           continue
+        }
+        if (row['Last Checked (CST)']) {
+          const lastUpdate = moment.tz(row['Last Checked (CST)'], DATE_FORMAT, TIMEZONE)
+          if (lastUpdate.isAfter(moment().subtract(UPDATE_SECONDS, 'seconds'))) {
+            console.log('skipping recently updated', row.Link)
+            continue
+          }
         }
         queue.add(tryRow(sheet, offset))
       }
