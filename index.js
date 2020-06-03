@@ -154,6 +154,7 @@ async function main() {
         console.warn('error updating row', row && row.Link, err)
 	if (err.captcha) {
 	  console.log('waiting for captcha...')
+	  await sleep(5000)
 	  await page.waitForNavigation({timeout: 2 * 60 * 1000})
 	}
         if (!err.retryable || tries > 3) {
