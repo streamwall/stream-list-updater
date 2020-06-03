@@ -193,7 +193,7 @@ async function main() {
           console.log('bot disabled. skipping sheet.')
           break
         }
-        if (!row.Link) {
+        if (!row.Link || !checkForStream(row.Link)) {
           continue
         }
         if (row['Last Checked (CST)']) {
