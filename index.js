@@ -69,12 +69,12 @@ const checkFBLive = async function(page, url) {
   const result = await findString('Facebook', [`"broadcast_status":"LIVE"`, 'is_live_stream:true,'])(page, url)
   if (result.title === 'Security Check Required') {
     throw new CheckError({captcha: true, retryable: true}, 'Facebook CAPTCHA required')
-  }
-  if (!result.html.includes('broadcast_status')) {
-    throw new CheckError({retryable: true}, 'Facebook returned unexpected response')
-  }
-  if (result.title === 'You must log in to continue') {
+  } else if (result.html.includes(`This Content Isn't Available Right Now`)) {
+    result.status = 'Removed'
+  } else if (result.title === 'You must log in to continue') {
     throw new CheckError('Facebook content now private')
+  } else if (!result.html.includes('broadcast_status')) {
+    throw new CheckError({retryable: true}, 'Facebook returned unexpected response')
   }
   result.embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=0`
   return result
@@ -109,7 +109,11 @@ async function updateRow(row, page) {
 
   const result = await check(page, row.Link)
 
-  row.Status = result.isLive ? 'Live' : 'Offline'
+  if (result.status) {
+    row.Status = result.status
+  } else {
+    row.Status = result.isLive ? 'Live' : 'Offline'
+  }
   row['Last Checked (CST)'] = moment().tz("America/Chicago").format('M/D/YY HH:mm:ss')
   if (result.isLive) {
     row['Title'] = result.title
