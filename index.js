@@ -130,8 +130,7 @@ async function updateRow(row, page) {
 async function main() {
   const queue = new PQueue({concurrency: 1, interval: 2000, intervalCap: 1, autoStart: false})
 
-  const browser = await puppeteer.launch({headless: false})
-  const page = await browser.newPage()
+  let page
 
   function tryRow(sheet, offset, tries=0) {
     return async function() {
@@ -207,6 +206,14 @@ async function main() {
       }
     }
   }
+
+  if (queue.size === 0) {
+    console.log('nothing to do.')
+    return
+  }
+
+  const browser = await puppeteer.launch({headless: false})
+  page = await browser.newPage()
 
   queue.start()
   await queue.onIdle()
