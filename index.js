@@ -96,18 +96,17 @@ const checkYTLive = async function(page, url) {
 }
 
 const checkFBLive = async function(page, url) {
-  const result = await findString('Facebook', [`"broadcast_status":"LIVE"`, 'is_live_stream:true,'])(page, url)
-  if (result.title === 'Security Check Required') {
-    throw new CheckError({captcha: true, retryable: false}, 'Facebook CAPTCHA required')
-  } else if (result.html.includes(`This Content Isn't Available Right Now`)) {
-    result.isLive = false
-  } else if (result.html.includes('You must log in to continue')) {
-    result.isLive = false
-  } else if (!result.html.includes('broadcast_status')) {
-    throw new CheckError({retryable: true}, 'Facebook returned unexpected response')
+  const platformName = 'Facebook'
+  const embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=1`
+  await page.goto(embed)
+  const html = await page.content()
+  const isLive = html.includes('is_live_stream:true,')
+  const title$ = await page.$('[data-testid=post_message')
+  let title
+  if (title$) {
+    title = await title$.evaluate(n => n.textContent)
   }
-  result.embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=0`
-  return result
+  return {url, isLive, title, platformName, embed}
 }
 
 function checkForStream(url) {
