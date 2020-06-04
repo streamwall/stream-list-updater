@@ -10,6 +10,7 @@ const {default: PQueue} = require('p-queue')
 
 const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
 const UPDATE_SECONDS = process.env.UPDATE_SECONDS
+const CHECK_INTERVAL = process.env.CHECK_INTERVAL * 1000
 const CREDS = require('./creds.json')
 const YT_API_KEY = process.env.YT_API_KEY
 const IG_USER = process.env.IG_USER
@@ -157,7 +158,7 @@ async function updateRow(row, page) {
 }
 
 async function main() {
-  const queue = new PQueue({concurrency: 1, interval: 10000, intervalCap: 1, autoStart: false})
+  const queue = new PQueue({concurrency: 1, interval: CHECK_INTERVAL, intervalCap: 1, autoStart: false})
 
   let page
 
