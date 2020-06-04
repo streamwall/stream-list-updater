@@ -101,7 +101,7 @@ const checkFBLive = async function(page, url) {
   const embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=1`
   await page.goto(embed)
   const html = await page.content()
-  const isLive = html.includes('is_live_stream:true,')
+  const isLive = html.includes('is_live_stream":true,')
   const title$ = await page.$('[data-testid=post_message')
   let title
   if (title$) {
