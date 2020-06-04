@@ -73,7 +73,7 @@ const checkYTLive = async function(page, url) {
 const checkFBLive = async function(page, url) {
   const result = await findString('Facebook', [`"broadcast_status":"LIVE"`, 'is_live_stream:true,'])(page, url)
   if (result.title === 'Security Check Required') {
-    throw new CheckError({captcha: true, retryable: true}, 'Facebook CAPTCHA required')
+    throw new CheckError({captcha: true, retryable: false}, 'Facebook CAPTCHA required')
   } else if (result.html.includes(`This Content Isn't Available Right Now`)) {
     result.isLive = false
   } else if (result.html.includes('You must log in to continue')) {
