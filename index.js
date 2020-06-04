@@ -11,6 +11,8 @@ const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
 const UPDATE_SECONDS = process.env.UPDATE_SECONDS
 const CREDS = require('./creds.json')
 const YT_API_KEY = process.env.YT_API_KEY
+const IG_USER = process.env.IG_USER
+const IG_PASS = process.env.IG_PASS
 const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
 const SLEEP_SECONDS = 30 * 1000
@@ -40,7 +42,28 @@ function findString(platformName, strings) {
 }
 
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"`)
-const checkInstagramLive = findString('Instagram', `"broadcast_status":"active"`)
+
+const checkInstagramLive = async function(page, url) {
+  const platformName = 'Instagram'
+  await page.goto(url)
+
+  const loggedOut$ = await page.$('html.not-logged-in', {waitUntil: 'network0'})
+  if (loggedOut$) {
+    await page.waitFor('[name=username]')
+    await page.type('[name=username]', IG_USER)
+    await page.type('[name=password]', IG_PASS)
+    await page.click('[type=submit]')
+    await page.waitForNavigation()
+  }
+  const stillLoggedOut$ = await page.$('html.not-logged-in')
+  if (stillLoggedOut$) {
+    throw new CheckError({retryable: false}, 'Unable to log in to Instagram')
+  }
+
+  const html = await page.content()
+  const isLive = html.includes(`"broadcast_status":"active"`)
+  return {url, isLive, html, platformName}
+}
 
 const checkTwitchLive = async function(page, url) {
   const platformName = 'Twitch'
