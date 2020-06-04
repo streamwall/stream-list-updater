@@ -23,12 +23,13 @@ This script checks links in the spreadsheet to determine if streams are live or 
 * Facebook Live
 * Twitch.tv
 * Periscope
+* Instagram
 
 A browser window will open and automatically load up stream URLs. You will need to fill in CAPTCHAs occasionally.
 
 
 ```
-UPDATE_SECONDS=<age in seconds to consider check stale> SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' YT_API_KEY=... npm start
+UPDATE_SECONDS=<age in seconds to consider check stale> SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' YT_API_KEY=... IG_USER=... IG_PASS=... npm start
 ```
 
 ### Collect URLs from Twitch chat
