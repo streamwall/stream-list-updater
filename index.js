@@ -242,6 +242,7 @@ async function runUpdate() {
 
   if (queue.size === 0) {
     console.log('nothing to do.')
+    await browser.close()
     return
   }
 
