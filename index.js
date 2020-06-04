@@ -157,7 +157,7 @@ async function updateRow(row, page) {
 }
 
 async function main() {
-  const queue = new PQueue({concurrency: 1, interval: 2000, intervalCap: 1, autoStart: false})
+  const queue = new PQueue({concurrency: 1, interval: 10000, intervalCap: 1, autoStart: false})
 
   let page
 
