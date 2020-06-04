@@ -13,6 +13,7 @@ const CREDS = require('./creds.json')
 const YT_API_KEY = process.env.YT_API_KEY
 const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
+const SLEEP_SECONDS = 30 * 1000
 
 const sleep = promisify(setTimeout)
 
@@ -182,48 +183,55 @@ async function main() {
     }
   }
 
-  for (const sheet of SHEETS) {
-    const [sheetID, ...tabNames] = sheet
+  async function runUpdate() {
+    for (const sheet of SHEETS) {
+      const [sheetID, ...tabNames] = sheet
 
-    const doc = new GoogleSpreadsheet(sheetID)
-    await doc.useServiceAccountAuth(CREDS)
-    await doc.loadInfo()
-  
-    const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
-    for (const sheet of sheets) {
-      const rows = await sheet.getRows()
-      for (const [offset, row] of rows.entries()) {
-        if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
-          console.log('bot disabled. skipping sheet.')
-          break
-        }
-        if (!row.Link || !checkForStream(row.Link)) {
-          continue
-        }
-        if (row['Last Checked (CST)']) {
-          const lastUpdate = moment.tz(row['Last Checked (CST)'], DATE_FORMAT, TIMEZONE)
-          if (lastUpdate.isAfter(moment().subtract(UPDATE_SECONDS, 'seconds'))) {
-            console.log('skipping recently updated', row.Link)
+      const doc = new GoogleSpreadsheet(sheetID)
+      await doc.useServiceAccountAuth(CREDS)
+      await doc.loadInfo()
+
+      const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
+      for (const sheet of sheets) {
+        const rows = await sheet.getRows()
+        for (const [offset, row] of rows.entries()) {
+          if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
+            console.log('bot disabled. skipping sheet.')
+            break
+          }
+          if (!row.Link || !checkForStream(row.Link)) {
             continue
           }
+          if (row['Last Checked (CST)']) {
+            const lastUpdate = moment.tz(row['Last Checked (CST)'], DATE_FORMAT, TIMEZONE)
+            if (lastUpdate.isAfter(moment().subtract(UPDATE_SECONDS, 'seconds'))) {
+              console.log('skipping recently updated', row.Link)
+              continue
+            }
+          }
+          queue.add(tryRow(sheet, offset))
         }
-        queue.add(tryRow(sheet, offset))
       }
     }
+
+    if (queue.size === 0) {
+      console.log('nothing to do.')
+      return
+    }
+
+    const browser = await puppeteer.launch({headless: false})
+    page = await browser.newPage()
+
+    queue.start()
+    await queue.onIdle()
+    console.log('finished.')
+    await browser.close()
   }
 
-  if (queue.size === 0) {
-    console.log('nothing to do.')
-    return
+  while (true) {
+    await runUpdate()
+    await sleep(SLEEP_SECONDS)
   }
-
-  const browser = await puppeteer.launch({headless: false})
-  page = await browser.newPage()
-
-  queue.start()
-  await queue.onIdle()
-  console.log('finished.')
-  await browser.close()
 }
 
 main()
