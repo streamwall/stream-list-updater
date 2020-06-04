@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const {promisify} = require('util')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const {ChatClient} = require('dank-twitch-irc')

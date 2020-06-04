@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const {promisify} = require('util')
 const keyBy = require('lodash/keyBy')
 const fetch = require('node-fetch')
