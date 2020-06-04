@@ -35,5 +35,5 @@ UPDATE_SECONDS=<age in seconds to consider check stale> CHECK_INTERVAL=<seconds 
 ### Collect URLs from Twitch chat
 
 ```
-SHEET_ID=<sheets id from url> npm run twitch-urls
+SHEET_ID=<sheets id from url> TAB_NAME=... npm run twitch-urls
 ```

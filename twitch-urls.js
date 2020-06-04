@@ -5,6 +5,7 @@ const {ChatClient} = require('dank-twitch-irc')
 const moment = require('moment-timezone')
 
 const SHEET_ID = process.env.SHEET_ID
+const TAB_NAME = process.env.TAB_NAME
 const CREDS = require('./creds.json')
 
 const sleep = promisify(setTimeout)
@@ -30,7 +31,7 @@ async function main() {
   const doc = new GoogleSpreadsheet(SHEET_ID)
   await doc.useServiceAccountAuth(CREDS)
   await doc.loadInfo()
-  const sheet = doc.sheetsByIndex[0]
+  const sheet = Object.values(doc.sheetsById).find(s => s.title === TAB_NAME)
   await sheet.loadHeaderRow()
 
   async function addRow(data) {
