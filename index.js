@@ -17,7 +17,7 @@ const IG_USER = process.env.IG_USER
 const IG_PASS = process.env.IG_PASS
 const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
-const SLEEP_SECONDS = 30 * 1000
+const SLEEP_SECONDS = 30
 
 const sleep = promisify(setTimeout)
 
@@ -254,7 +254,7 @@ async function main() {
 
   while (true) {
     await runUpdate()
-    await sleep(SLEEP_SECONDS)
+    await sleep(SLEEP_SECONDS * 1000)
   }
 }
 
