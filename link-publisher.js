@@ -42,7 +42,7 @@ async function runPublish() {
       },
       body: JSON.stringify({
         username: 'New Stream',
-        content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? '  :notepad_spiral: ' + row.Notes : ''}  :link: <${row.Link}>`,
+        content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View}) :link: <${row.Link}>${row.Notes ? ' :notepad_spiral: ' + row.Notes : ''}`,
       }),
     })
 
