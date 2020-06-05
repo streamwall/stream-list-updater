@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const {promisify} = require('util')
 const keyBy = require('lodash/keyBy')
 const fetch = require('node-fetch')
 const cheerio = require('cheerio')
@@ -19,7 +18,7 @@ const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
 const SLEEP_SECONDS = 30
 
-const sleep = promisify(setTimeout)
+const {sleep} = require('./utils')
 
 class CheckError extends Error {
   constructor({captcha, retryable}, ...params) {

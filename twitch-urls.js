@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const {promisify} = require('util')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const {ChatClient} = require('dank-twitch-irc')
 const moment = require('moment-timezone')
@@ -8,7 +7,7 @@ const SHEET_ID = process.env.SHEET_ID
 const TAB_NAME = process.env.TAB_NAME
 const CREDS = require('./creds.json')
 
-const sleep = promisify(setTimeout)
+const {doWithRetry, sleep} = require('./utils')
 
 const ignoreDisplayNames = new Set([
   'StreamElements',
@@ -33,23 +32,6 @@ async function main() {
   await doc.loadInfo()
   const sheet = Object.values(doc.sheetsById).find(s => s.title === TAB_NAME)
   await sheet.loadHeaderRow()
-
-  async function addRow(data) {
-    let tries = 0
-
-    while (tries < 3) {
-      try {
-        const row = await sheet.addRow(data)
-      } catch (err) {
-        console.log('ratelimited. waiting 5s...')
-        await sleep(5000)
-        tries++
-        continue
-      }
-
-      return
-    }
-  }
 
   const client = new ChatClient()
 
@@ -78,12 +60,12 @@ async function main() {
       const urlStart = url.host + url.pathname
       if (interestingPrefixes.some(p => urlStart.startsWith(p))) {
         console.log(`[${displayName}] ${messageText}`)
-        const row = addRow({
+        const row = doWithRetry(() => sheet.addRow({
           URL: match.toString(),
           'Timestamp (CST)': moment().tz("America/Chicago").format('M/D/YY HH:mm:ss'),
           Message: messageText,
           'Display Name': displayName,
-        })
+        }))
       }
     }
   })

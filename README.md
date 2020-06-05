@@ -37,3 +37,9 @@ UPDATE_SECONDS=<age in seconds to consider check stale> CHECK_INTERVAL=<seconds 
 ```
 SHEET_ID=<sheets id from url> TAB_NAME=... npm run twitch-urls
 ```
+
+### Automatically publish moderated streams and announce to Discord
+
+```
+FROM_SHEET_ID=<sheets id from url> FROM_TAB_NAME=... TO_SHEET_ID=<sheets id from url> TO_TAB_NAME=... ANNOUNCE_WEBHOOK_URL=<webhook url from discord> SLEEP_SECONDS=30 npm run twitch-urls
+```

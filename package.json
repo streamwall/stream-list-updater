@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "twitch-urls": "node twitch-urls.js"
+    "twitch-urls": "node twitch-urls.js",
+    "link-publisher": "node link-publisher.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
