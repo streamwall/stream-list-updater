@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const sample = require('lodash/sample')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const fetch = require('node-fetch')
 
@@ -12,19 +11,6 @@ const SLEEP_SECONDS = process.env.SLEEP_SECONDS
 const CREDS = require('./creds.json')
 
 const {doWithRetry, sleep} = require('./utils')
-
-const emojis = [
-  ':airplane:',
-  ':jigsaw:',
-  ':checkered_flag:',
-  ':herb:',
-  ':ocean:',
-  ':rocket:',
-  ':satellite_orbital:',
-  ':flying_saucer:',
-  ':satellite:',
-  ':incoming_envelope:',
-]
 
 async function runPublish() {
   const fromDoc = new GoogleSpreadsheet(FROM_SHEET_ID)
@@ -56,7 +42,7 @@ async function runPublish() {
       },
       body: JSON.stringify({
         username: 'Stream Published',
-        content: `${sample(emojis)} **${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View}) <${row.Link}>`,
+        content: `:link: **${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View}) <${row.Link}>`,
       }),
     })
 
