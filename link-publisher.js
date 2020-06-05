@@ -29,7 +29,7 @@ async function runPublish() {
     for (const sheet of sheets) {
       const rows = await doWithRetry(() => sheet.getRows())
       for (const row of rows) {
-        if (!row.Link || row.x === 'x') {
+        if (!row.Link || row.Published === 'x') {
           continue
         }
 
@@ -38,7 +38,7 @@ async function runPublish() {
         }
 
         await doWithRetry(() => toSheet.addRow(row))
-        row.x = 'x'
+        row.Published = 'x'
         await doWithRetry(() => row.save())
 
         const resp = await fetch(ANNOUNCE_WEBHOOK_URL, {
