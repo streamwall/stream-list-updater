@@ -55,8 +55,8 @@ async function runPublish() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username: 'Woke',
-        content: `${sample(emojis)} Stream Published: ${row.Source} — ${row.City}, ${row.State} (${row.Type}, ${row.View}) <${row.Link}>`,
+        username: 'Stream Published',
+        content: `${sample(emojis)} _${row.Source}_ — ${row.City}, ${row.State} (${row.Type}, ${row.View}) <${row.Link}>`,
       }),
     })
 
