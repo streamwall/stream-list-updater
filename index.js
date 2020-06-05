@@ -216,8 +216,8 @@ async function runUpdate() {
     }
   }
 
-  for (const sheet of SHEETS) {
-    const [sheetID, ...tabNames] = sheet
+  for (const docInfo of SHEETS) {
+    const [sheetID, ...tabNames] = docInfo
 
     const doc = new GoogleSpreadsheet(sheetID)
     await doc.useServiceAccountAuth(CREDS)
