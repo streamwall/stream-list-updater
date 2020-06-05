@@ -25,9 +25,9 @@ async function announce(row) {
   })
 }
 
-async function announceDetails(row) {
+async function announceDetails(row, linkInfo) {
   if (ANNOUNCE_DETAILS_WEBHOOK_URL) {
-    const {streamType, embed} = getLinkInfo(row.Link)
+    const {streamType, embed} = linkInfo
 
     const msgParts = []
     msgParts.push(`**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''}`)
@@ -75,12 +75,17 @@ async function runPublish() {
           continue
         }
 
+        const linkInfo = await getLinkInfo(row.Link)
+        if (linkInfo.normalizedURL) {
+          row.Link = linkInfo.normalizedURL
+        }
+
         await doWithRetry(() => toSheet.addRow(row))
         row.Published = 'x'
         await doWithRetry(() => row.save())
 
         await announce(row)
-        await announceDetails(row)
+        await announceDetails(row, linkInfo)
 
         console.log(`published ${row.Link}`)
       }

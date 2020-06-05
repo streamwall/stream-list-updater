@@ -68,7 +68,7 @@ const checkInstagramLive = async function(page, url) {
 
 const checkTwitchLive = async function(page, url) {
   const streamType = 'Twitch'
-  const {channelName, embed} = getLinkInfo(url)
+  const {channelName, embed} = await getLinkInfo(url)
   await page.goto(url, {waitUntil: 'load'})
   const liveIndicator$ = await page.$('.live-indicator, .live-indicator-container')
   const isLive = !!liveIndicator$
@@ -82,7 +82,7 @@ const checkTwitchLive = async function(page, url) {
 
 const checkYTLive = async function(page, url) {
   const streamType = 'YouTube'
-  const {videoID, embed} = getLinkInfo(url)
+  const {videoID, embed} = await getLinkInfo(url)
   const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${videoID}&key=${YT_API_KEY}&part=snippet`
   const resp = await fetch(apiURL)
   const data = await resp.json()
@@ -95,7 +95,7 @@ const checkYTLive = async function(page, url) {
 
 const checkFBLive = async function(page, url) {
   const streamType = 'Facebook'
-  const {embed} = getLinkInfo(url)
+  const {embed} = await getLinkInfo(url)
   await page.goto(embed)
   const html = await page.content()
   const isLive = html.includes('is_live_stream":true,')

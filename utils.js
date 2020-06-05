@@ -1,4 +1,5 @@
 const {promisify} = require('util')
+const fetch = require('node-fetch')
 
 module.exports.sleep = promisify(setTimeout)
 
@@ -47,7 +48,7 @@ const getStreamType = module.exports.getStreamType = function getStreamType(urlS
   }
 }
 
-module.exports.getLinkInfo = function getEmbedLink(url) {
+module.exports.getLinkInfo = async function getLinkInfo(url) {
   const streamType = getStreamType(url)
   if (streamType === 'Twitch') {
     const channelName = url.split('https://www.twitch.tv/')[1]
@@ -59,7 +60,12 @@ module.exports.getLinkInfo = function getEmbedLink(url) {
     return {streamType, videoID, embed}
   } else if (streamType === 'Facebook') {
     const embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=1`
-    return {streamType, embed}
+    let resp = await fetch(url, {redirect: 'manual'})
+    while (resp.status === 302) {
+      resp = await fetch(resp.headers.get('location'), {redirect: 'manual'})
+    }
+    const normalizedURL = resp.url
+    return {streamType, embed, normalizedURL}
   }
   return {streamType}
 }
