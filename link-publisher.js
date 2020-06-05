@@ -20,7 +20,7 @@ async function announce(row) {
     },
     body: JSON.stringify({
       username: 'New Stream',
-      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''} :link: <${row.Link}>`,
+      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''} <${row.Link}>`,
     }),
   })
 }
