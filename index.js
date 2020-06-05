@@ -161,6 +161,13 @@ async function runUpdate() {
   const queue = new PQueue({concurrency: 1, interval: CHECK_INTERVAL, intervalCap: 1, autoStart: false})
   const browser = await puppeteer.launch({headless: false})
 
+  function enqueue(promise) {
+    queue.add(promise).catch(err => {
+      console.error('unhandled fatal error', err)
+      process.exit(1)
+    })
+  }
+
   function tryRow(sheet, offset, tries=0) {
     return async function() {
       await sleep(tries * 5000)
@@ -201,7 +208,7 @@ async function runUpdate() {
           console.warn('giving up on row', row && row.Link)
           return
         }
-        queue.add(tryRow(sheet, offset, tries + 1))
+        enqueue(tryRow(sheet, offset, tries + 1))
         return
       } finally {
         await page.close()
@@ -235,7 +242,7 @@ async function runUpdate() {
             continue
           }
         }
-        queue.add(tryRow(sheet, offset))
+        enqueue(tryRow(sheet, offset))
       }
     }
   }
