@@ -265,4 +265,9 @@ async function main() {
   }
 }
 
-main()
+try {
+  main()
+} catch (err) {
+  console.error('fatal error:', err)
+  process.exit(1)
+}
