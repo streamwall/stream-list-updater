@@ -259,15 +259,15 @@ async function runUpdate() {
 }
 
 async function main() {
-  while (true) {
-    await runUpdate()
-    await sleep(SLEEP_SECONDS * 1000)
+  try {
+    while (true) {
+      await runUpdate()
+      await sleep(SLEEP_SECONDS * 1000)
+    }
+  } catch (err) {
+    console.error('fatal error:', err)
+    process.exit(1)
   }
 }
 
-try {
-  main()
-} catch (err) {
-  console.error('fatal error:', err)
-  process.exit(1)
-}
+main()
