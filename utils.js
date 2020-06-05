@@ -64,7 +64,7 @@ module.exports.getLinkInfo = async function getLinkInfo(url) {
       resp = await fetch(resp.headers.get('location'), {redirect: 'manual'})
     }
     const normalizedURL = resp.url
-    const embed = `https://www.facebook.com/plugins/video.php?href=${normalizedURL}&show_text=1`
+    const embed = `https://www.facebook.com/plugins/video.php?href=${normalizedURL}`
     return {streamType, embed, normalizedURL}
   }
   return {streamType}

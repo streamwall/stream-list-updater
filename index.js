@@ -96,7 +96,7 @@ const checkYTLive = async function(page, url) {
 const checkFBLive = async function(page, url) {
   const streamType = 'Facebook'
   const {embed} = await getLinkInfo(url)
-  await page.goto(embed)
+  await page.goto(embed + '&show_text=1')
   const html = await page.content()
   const isLive = html.includes('is_live_stream":true,')
   const title$ = await page.$('[data-testid=post_message')
