@@ -6,10 +6,48 @@ const FROM_SHEETS = process.env.FROM_SHEETS.split('|').map(s => s.split(','))
 const TO_SHEET_ID = process.env.TO_SHEET_ID
 const TO_TAB_NAME = process.env.TO_TAB_NAME
 const ANNOUNCE_WEBHOOK_URL = process.env.ANNOUNCE_WEBHOOK_URL
+const ANNOUNCE_DETAILS_WEBHOOK_URL = process.env.ANNOUNCE_DETAILS_WEBHOOK_URL
 const SLEEP_SECONDS = process.env.SLEEP_SECONDS
 const CREDS = require('./creds.json')
 
-const {doWithRetry, sleep} = require('./utils')
+const {doWithRetry, sleep, getLinkInfo} = require('./utils')
+
+async function announce(row) {
+  await fetch(ANNOUNCE_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: 'New Stream',
+      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''} :link: <${row.Link}>`,
+    }),
+  })
+}
+
+async function announceDetails(row) {
+  if (ANNOUNCE_DETAILS_WEBHOOK_URL) {
+    const {streamType, embed} = getLinkInfo(row.Link)
+
+    const msgParts = []
+    msgParts.push(`**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''}`)
+    msgParts.push(`:link: <${row.Link}>`)
+    if (embed) {
+      msgParts.push(`:gear: <${embed}>`)
+    }
+
+    await fetch(ANNOUNCE_DETAILS_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: 'New Stream',
+        content: msgParts.join('\n'),
+      }),
+    })
+  }
+}
 
 async function runPublish() {
   const toDoc = new GoogleSpreadsheet(TO_SHEET_ID)
@@ -41,16 +79,8 @@ async function runPublish() {
         row.Published = 'x'
         await doWithRetry(() => row.save())
 
-        const resp = await fetch(ANNOUNCE_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: 'New Stream',
-            content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''} :link: <${row.Link}>`,
-          }),
-        })
+        await announce(row)
+        await announceDetails(row)
 
         console.log(`published ${row.Link}`)
       }

@@ -21,3 +21,45 @@ module.exports.doWithRetry = async function doWithRetry(func) {
   }
   return await func()
 }
+
+const getStreamType = module.exports.getStreamType = function getStreamType(urlStr) {
+  let url
+  try {
+    url = new URL(urlStr)
+  } catch (err) {
+    console.warn('invalid url', urlStr)
+    return
+  }
+
+  let {host} = url
+  host = host.replace(/^www\./, '')
+
+  if (host === 'youtube.com' || host === 'youtu.be') {
+    return 'YouTube'
+  } else if (host === 'facebook.com') {
+    return 'Facebook'
+  } else if (host === 'twitch.tv') {
+    return 'Twitch'
+  } else if (host === 'periscope.tv' || host === 'pscp.tv') {
+    return 'Periscope'
+  } else if (host === 'instagram.com') {
+    return 'Instagram'
+  }
+}
+
+module.exports.getLinkInfo = function getEmbedLink(url) {
+  const streamType = getStreamType(url)
+  if (streamType === 'Twitch') {
+    const channelName = url.split('https://www.twitch.tv/')[1]
+    const embed = `https://player.twitch.tv/?channel=${channelName}`
+    return {streamType, channelName, embed}
+  } else if (streamType === 'YouTube') {
+    const videoID = url.startsWith('https://youtu.be') ? url.split('youtu.be/')[1] : url.split('v=')[1]
+    const embed = `https://www.youtube.com/embed/${videoID}`
+    return {streamType, videoID, embed}
+  } else if (streamType === 'Facebook') {
+    const embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=1`
+    return {streamType, embed}
+  }
+  return {streamType}
+}

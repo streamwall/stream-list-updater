@@ -18,7 +18,7 @@ const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
 const SLEEP_SECONDS = 30
 
-const {sleep} = require('./utils')
+const {sleep, getStreamType, getLinkInfo} = require('./utils')
 
 class CheckError extends Error {
   constructor({captcha, retryable}, ...params) {
@@ -28,7 +28,7 @@ class CheckError extends Error {
   }
 }
 
-function findString(platformName, strings) {
+function findString(streamType, strings) {
   return async function(page, url) {
     await page.goto(url, {waitUntil: 'domcontentloaded'})
     const html = await page.content()
@@ -38,14 +38,14 @@ function findString(platformName, strings) {
     const isLive = strings.some(s => html.includes(s))
     const $ = cheerio.load(html)
     const title = $('title').text()
-    return {url, isLive, html, title, platformName}
+    return {url, isLive, html, title, streamType}
   }
 }
 
 const checkPeriscopeLive = findString('Periscope', `name="twitter:text:broadcast_state" content="RUNNING"`)
 
 const checkInstagramLive = async function(page, url) {
-  const platformName = 'Instagram'
+  const streamType = 'Instagram'
   await page.goto(url)
 
   const loggedOut$ = await page.$('html.not-logged-in', {waitUntil: 'network0'})
@@ -63,12 +63,12 @@ const checkInstagramLive = async function(page, url) {
 
   const html = await page.content()
   const isLive = html.includes(`"broadcast_status":"active"`)
-  return {url, isLive, html, platformName}
+  return {url, isLive, html, streamType}
 }
 
 const checkTwitchLive = async function(page, url) {
-  const platformName = 'Twitch'
-  const channelName = url.split('https://www.twitch.tv/')[1]
+  const streamType = 'Twitch'
+  const {channelName, embed} = getLinkInfo(url)
   await page.goto(url, {waitUntil: 'load'})
   const liveIndicator$ = await page.$('.live-indicator, .live-indicator-container')
   const isLive = !!liveIndicator$
@@ -77,27 +77,25 @@ const checkTwitchLive = async function(page, url) {
   if (title$) {
     title = await title$.evaluate(n => n.textContent)
   }
-  const embed = `https://player.twitch.tv/?channel=${channelName}`
-  return {url, isLive, title, platformName, embed}
+  return {url, isLive, title, streamType, embed}
 }
 
 const checkYTLive = async function(page, url) {
-  const platformName = 'YouTube'
-  const ytID = url.startsWith('https://youtu.be') ? url.split('youtu.be/')[1] : url.split('v=')[1]
-  const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${ytID}&key=${YT_API_KEY}&part=snippet`
+  const streamType = 'YouTube'
+  const {videoID, embed} = getLinkInfo(url)
+  const apiURL = `https://www.googleapis.com/youtube/v3/videos?id=${videoID}&key=${YT_API_KEY}&part=snippet`
   const resp = await fetch(apiURL)
   const data = await resp.json()
   const firstItem = data.items[0]
   const isLive = firstItem && firstItem.snippet.liveBroadcastContent === 'live'
   const title = firstItem && firstItem.snippet.title
-  const embed = `https://www.youtube.com/embed/${ytID}`
-  const result = {url, isLive, title, platformName, embed}
+  const result = {url, isLive, title, streamType, embed}
   return result
 }
 
 const checkFBLive = async function(page, url) {
-  const platformName = 'Facebook'
-  const embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=1`
+  const streamType = 'Facebook'
+  const {embed} = getLinkInfo(url)
   await page.goto(embed)
   const html = await page.content()
   const isLive = html.includes('is_live_stream":true,')
@@ -106,30 +104,20 @@ const checkFBLive = async function(page, url) {
   if (title$) {
     title = await title$.evaluate(n => n.textContent)
   }
-  return {url, isLive, title, platformName, embed}
+  return {url, isLive, title, streamType, embed}
 }
 
-function checkForStream(urlStr) {
-  let url
-  try {
-    url = new URL(urlStr)
-  } catch (err) {
-    console.warn('invalid url', urlStr)
-    return
-  }
-
-  let {host} = url
-  host = host.replace(/^www\./, '')
-
-  if (YT_API_KEY && (host === 'youtube.com' || host === 'youtu.be')) {
+function checkForStream(url) {
+  const streamType = getStreamType(url)
+  if (YT_API_KEY && streamType === 'YouTube') {
     return checkYTLive
-  } else if (host === 'facebook.com') {
+  } else if (streamType === 'Facebook') {
     return checkFBLive
-  } else if (host === 'twitch.tv') {
+  } else if (streamType === 'Twitch') {
     return checkTwitchLive
-  } else if (host === 'periscope.tv' || host === 'pscp.tv') {
+  } else if (streamType === 'Periscope') {
     return checkPeriscopeLive
-  } else if (host === 'instagram.com') {
+  } else if (streamType === 'Instagram') {
     return checkInstagramLive
   }
 }
