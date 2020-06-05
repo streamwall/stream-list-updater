@@ -61,7 +61,11 @@ module.exports.getLinkInfo = async function getLinkInfo(url) {
   } else if (streamType === 'Facebook') {
     let resp = await fetch(url, {redirect: 'manual'})
     while (resp.status === 302) {
-      resp = await fetch(resp.headers.get('location'), {redirect: 'manual'})
+      const dest = resp.headers.get('location')
+      if (dest.startsWith('https://www.facebook.com/login.php')) {
+        break
+      }
+      resp = await fetch(dest, {redirect: 'manual'})
     }
     const normalizedURL = resp.url
     const embed = `https://www.facebook.com/plugins/video.php?href=${normalizedURL}`
