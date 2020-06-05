@@ -56,7 +56,7 @@ async function runPublish() {
       },
       body: JSON.stringify({
         username: 'Stream Published',
-        content: `${sample(emojis)} _${row.Source}_ — ${row.City}, ${row.State} (${row.Type}, ${row.View}) <${row.Link}>`,
+        content: `${sample(emojis)} **${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View}) <${row.Link}>`,
       }),
     })
 
