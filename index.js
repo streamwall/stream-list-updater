@@ -109,8 +109,16 @@ const checkFBLive = async function(page, url) {
   return {url, isLive, title, platformName, embed}
 }
 
-function checkForStream(url) {
-  let {host} = new URL(url)
+function checkForStream(urlStr) {
+  let url
+  try {
+    url = new URL(urlStr)
+  } catch (err) {
+    console.warn('invalid url', urlStr)
+    return
+  }
+
+  let {host} = url
   host = host.replace(/^www\./, '')
 
   if (YT_API_KEY && (host === 'youtube.com' || host === 'youtu.be')) {
