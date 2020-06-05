@@ -59,12 +59,12 @@ module.exports.getLinkInfo = async function getLinkInfo(url) {
     const embed = `https://www.youtube.com/embed/${videoID}`
     return {streamType, videoID, embed}
   } else if (streamType === 'Facebook') {
-    const embed = `https://www.facebook.com/plugins/video.php?href=${url}&show_text=1`
     let resp = await fetch(url, {redirect: 'manual'})
     while (resp.status === 302) {
       resp = await fetch(resp.headers.get('location'), {redirect: 'manual'})
     }
     const normalizedURL = resp.url
+    const embed = `https://www.facebook.com/plugins/video.php?href=${normalizedURL}&show_text=1`
     return {streamType, embed, normalizedURL}
   }
   return {streamType}
