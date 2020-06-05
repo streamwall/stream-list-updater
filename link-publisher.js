@@ -2,7 +2,7 @@
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const fetch = require('node-fetch')
 
-const [FROM_SHEET_ID, ...FROM_TAB_NAMES] = process.env.FROM_SHEETS.split('|').map(s => s.split(','))
+const FROM_SHEETS = process.env.FROM_SHEETS.split('|').map(s => s.split(','))
 const TO_SHEET_ID = process.env.TO_SHEET_ID
 const TO_TAB_NAME = process.env.TO_TAB_NAME
 const ANNOUNCE_WEBHOOK_URL = process.env.ANNOUNCE_WEBHOOK_URL
@@ -18,38 +18,42 @@ async function runPublish() {
   const toSheet = Object.values(toDoc.sheetsById).find(s => s.title === TO_TAB_NAME)
   await toSheet.loadHeaderRow()
 
-  const fromDoc = new GoogleSpreadsheet(FROM_SHEET_ID)
-  await fromDoc.useServiceAccountAuth(CREDS)
-  await fromDoc.loadInfo()
+  for (const docInfo of FROM_SHEETS) {
+    const [sheetID, ...tabNames] = docInfo
 
-  const fromSheets = Object.values(doc.sheetsById).filter(s => FROM_TAB_NAMES.includes(s.title))
-  for (const fromSheet of fromSheets) {
-    const rows = await doWithRetry(() => fromSheet.getRows())
-    for (const row of rows) {
-      if (!row.Link || row.x === 'x') {
-        continue
+    const doc = new GoogleSpreadsheet(sheetID)
+    await doc.useServiceAccountAuth(CREDS)
+    await doc.loadInfo()
+
+    const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
+    for (const sheet of sheets) {
+      const rows = await doWithRetry(() => sheet.getRows())
+      for (const row of rows) {
+        if (!row.Link || row.x === 'x') {
+          continue
+        }
+
+        if (row.hasOwnProperty('Vetted') && row.Vetted !== 'x') {
+          continue
+        }
+
+        await doWithRetry(() => toSheet.addRow(row))
+        row.x = 'x'
+        await doWithRetry(() => row.save())
+
+        const resp = await fetch(ANNOUNCE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: 'New Stream',
+            content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View}) :link: <${row.Link}>${row.Notes ? ' ' + row.Notes : ''}`,
+          }),
+        })
+
+        console.log(`published ${row.Link}`)
       }
-
-      if (row.hasOwnProperty('Vetted') && row.Vetted !== 'x') {
-        continue
-      }
-
-      await doWithRetry(() => toSheet.addRow(row))
-      row.x = 'x'
-      await doWithRetry(() => row.save())
-
-      const resp = await fetch(ANNOUNCE_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: 'New Stream',
-          content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View}) :link: <${row.Link}>${row.Notes ? ' ' + row.Notes : ''}`,
-        }),
-      })
-
-      console.log(`published ${row.Link}`)
     }
   }
 }
