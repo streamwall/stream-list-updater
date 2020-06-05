@@ -185,7 +185,7 @@ async function runUpdate() {
       } catch (err) {
         if (err.response && err.response.status === 429) {
           queue.pause()
-          console.log('ratelimited. waiting 5s...')
+          console.log('ratelimited. waiting 10s...')
           await sleep(10000)
           queue.start()
           return
