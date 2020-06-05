@@ -46,7 +46,7 @@ async function runPublish() {
       }),
     })
 
-    console.log(`Published ${row.Link}`)
+    console.log(`published ${row.Link}`)
   }
 }
 
