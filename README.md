@@ -41,5 +41,5 @@ SHEET_ID=<sheets id from url> TAB_NAME=... npm run twitch-urls
 ### Automatically publish moderated streams and announce to Discord
 
 ```
-FROM_SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' TO_SHEET_ID=<sheets id from url> TO_TAB_NAME=... ANNOUNCE_WEBHOOK_URL=<webhook url from discord> SLEEP_SECONDS=30 npm run twitch-urls
+FROM_SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' TO_SHEET_ID=<sheets id from url> TO_TAB_NAME=... ANNOUNCE_WEBHOOK_URL=<webhook url from discord> SLEEP_SECONDS=30 npm run link-publisher
 ```
