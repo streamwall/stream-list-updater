@@ -56,7 +56,7 @@ module.exports.getLinkInfo = async function getLinkInfo(url) {
     return {streamType, channelName, embed}
   } else if (streamType === 'YouTube') {
     const videoID = url.startsWith('https://youtu.be') ? url.split('youtu.be/')[1] : url.split('v=')[1]
-    const embed = `https://www.youtube.com/embed/${videoID}`
+    const embed = `https://www.youtube.com/embed/${videoID}?autoplay=1`
     return {streamType, videoID, embed}
   } else if (streamType === 'Facebook') {
     let resp = await fetch(url, {redirect: 'manual'})
