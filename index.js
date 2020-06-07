@@ -142,7 +142,13 @@ async function updateRow(row, page) {
   } else {
     row.Status = result.isLive ? 'Live' : 'Offline'
   }
-  row['Last Checked (CST)'] = moment().tz(TIMEZONE).format(DATE_FORMAT)
+
+  const timestamp = moment().tz(TIMEZONE).format(DATE_FORMAT)
+  row['Last Checked (CST)'] = timestamp
+  if (result.isLive) {
+    row['Last Live (CST)'] = timestamp
+  }
+
   if (result.isLive) {
     row['Title'] = result.title
   }
