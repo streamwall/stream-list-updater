@@ -56,6 +56,9 @@ async function runPublish() {
   const toSheet = Object.values(toDoc.sheetsById).find(s => s.title === TO_TAB_NAME)
   await toSheet.loadHeaderRow()
 
+  const toRows = await doWithRetry(() => toSheet.getRows())
+  const publishedURLs = new Set(toRows.map(r => r.Link))
+
   for (const docInfo of FROM_SHEETS) {
     const [sheetID, ...tabNames] = docInfo
 
@@ -67,7 +70,7 @@ async function runPublish() {
     for (const sheet of sheets) {
       const rows = await doWithRetry(() => sheet.getRows())
       for (const row of rows) {
-        if (!row.Link || row.Published === 'x') {
+        if (!row.Link || row.Published !== '') {
           continue
         }
 
@@ -80,9 +83,16 @@ async function runPublish() {
           row.Link = linkInfo.normalizedURL
         }
 
+        if (publishedURLs.has(row.Link)) {
+          row.Published = 'dupe'
+          await doWithRetry(() => row.save())
+          continue
+        }
+
         await doWithRetry(() => toSheet.addRow(row))
         row.Published = 'x'
         await doWithRetry(() => row.save())
+        publishedURLs.add(row.Link)
 
         await announce(row)
         await announceDetails(row, linkInfo)
