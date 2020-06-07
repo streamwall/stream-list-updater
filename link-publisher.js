@@ -86,6 +86,7 @@ async function runPublish() {
         if (publishedURLs.has(row.Link)) {
           row.Published = 'dupe'
           await doWithRetry(() => row.save())
+          console.log(`skipped dupe ${row.Link}`)
           continue
         }
 
