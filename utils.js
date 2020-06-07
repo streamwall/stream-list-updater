@@ -1,7 +1,7 @@
 const {promisify} = require('util')
 const fetch = require('node-fetch')
 
-module.exports.sleep = promisify(setTimeout)
+const sleep = module.exports.sleep = promisify(setTimeout)
 
 module.exports.doWithRetry = async function doWithRetry(func) {
   let result
