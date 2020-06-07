@@ -8,6 +8,9 @@ const puppeteer = require('puppeteer')
 const {default: PQueue} = require('p-queue')
 
 const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
+const PREV_STREAMS_SHEET_ID = process.env.PREV_STREAMS_SHEET_ID
+const PREV_STREAMS_TAB_NAME = process.env.PREV_STREAMS_TAB_NAME
+const STREAM_EXPIRE_SECONDS = process.env.STREAM_EXPIRE_SECONDS
 const UPDATE_SECONDS = process.env.UPDATE_SECONDS
 const CHECK_INTERVAL = process.env.CHECK_INTERVAL * 1000
 const CREDS = require('./creds.json')
@@ -162,6 +165,12 @@ async function runUpdate() {
   const queue = new PQueue({concurrency: 1, interval: CHECK_INTERVAL, intervalCap: 1, autoStart: false})
   const browser = await puppeteer.launch({headless: false})
 
+  const prevStreamsDoc = new GoogleSpreadsheet(PREV_STREAMS_SHEET_ID)
+  await prevStreamsDoc.useServiceAccountAuth(CREDS)
+  await prevStreamsDoc.loadInfo()
+  const prevStreamsSheet = Object.values(prevStreamsDoc.sheetsById).find(s => s.title === PREV_STREAMS_TAB_NAME)
+  await prevStreamsSheet.loadHeaderRow()
+
   function enqueue(promise) {
     queue.add(promise).catch(err => {
       console.error('unhandled fatal error', err)
@@ -175,6 +184,7 @@ async function runUpdate() {
 
       const page = await browser.newPage()
 
+      let row
       try {
         row = await getRow(sheet, offset)
         if (!row || !row.Link) {
@@ -188,6 +198,16 @@ async function runUpdate() {
         if (!checkRow || checkRow.Link !== row.Link) {
           console.log('row modified, skipping', row.Link)
           return
+        }
+
+        if (row['Last Live (CST)']) {
+          const lastLive = moment.tz(row['Last Live (CST)'], DATE_FORMAT, TIMEZONE)
+          if (lastLive.isBefore(moment().subtract(STREAM_EXPIRE_SECONDS, 'seconds'))) {
+            console.log('expiring row', row.Link)
+            await prevStreamsSheet.addRow(row)
+            await row.delete()
+            return
+          }
         }
         await row.save()
       } catch (err) {
