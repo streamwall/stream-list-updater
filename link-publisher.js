@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const truncate = require('lodash/truncate')
+const toLower = require('lodash/toLower')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const Twitter = require('twitter')
 const fetch = require('node-fetch')
@@ -88,8 +89,8 @@ async function runPublish() {
 
   const flaggedSheet = await getSheetTab(SHEET_CREDS, FLAGGED_SHEET_ID, FLAGGED_TAB_NAME)
   const flaggedRows = await doWithRetry(() => flaggedSheet.getRows())
-  const flaggedSources = new Set(flaggedRows.map(r => r.Source.toLowerCase()))
-  const flaggedURLs = new Set(flaggedRows.map(r => r.Link.toLowerCase()))
+  const flaggedSources = new Set(flaggedRows.map(r => r.Source).filter(x => x).map(toLower))
+  const flaggedURLs = new Set(flaggedRows.map(r => r.Link).filter(x => x).map(toLower))
 
   for (const docInfo of FROM_SHEETS) {
     const [sheetID, ...tabNames] = docInfo
@@ -115,7 +116,7 @@ async function runPublish() {
           row.Link = linkInfo.normalizedURL
         }
 
-        if (flaggedURLs.has(row.Link.toLowerCase()) || flaggedSources.has(row.Source.toLowerCase())) {
+        if (flaggedURLs.has(toLower(row.Link)) || flaggedSources.has(toLower(row.Source))) {
           row.Published = 'flagged'
           await doWithRetry(() => row.save())
           console.log(`skipped flagged ${row.Link}`)
