@@ -51,7 +51,7 @@ const getStreamType = module.exports.getStreamType = function getStreamType(urlS
 module.exports.getLinkInfo = async function getLinkInfo(url) {
   const streamType = getStreamType(url)
   if (streamType === 'Twitch') {
-    const channelName = url.split('https://www.twitch.tv/')[1]
+    const channelName = url.split('twitch.tv/')[1]
     const embed = `https://player.twitch.tv/?channel=${channelName}`
     return {streamType, channelName, embed}
   } else if (streamType === 'YouTube') {
