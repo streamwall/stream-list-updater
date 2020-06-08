@@ -29,7 +29,7 @@ async function announce(row) {
     },
     body: JSON.stringify({
       username: 'New Stream',
-      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + truncate(row.Notes, {length: 60}) : ''} <${row.Link}>`,
+      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''} <${row.Link}>`,
     }),
   })
 }
@@ -67,7 +67,11 @@ async function tweet(row) {
   const tag = str => `#${str.toLowerCase().replace(' ', '')}`
 
   const client = new Twitter(TWITTER_CREDS)
-  const status = `${row.Source} ${tag(row.City)} ${tag(row.State)} #live ${tag(row.Type)} ${tag(row.View)} ${row.Notes ? ' ' + row.Notes : ''}\n${row.Link}`
+  const statusStart = `${row.Source} ${tag(row.City)} ${tag(row.State)} #live ${tag(row.Type)} ${tag(row.View)} `
+  const statusEnd = `\n${row.Link}`
+  const maxLen = 280
+  const notesLength = maxLen - statusStart.length - statusEnd.length - 1
+  const status = `${statusStart}${row.Notes ? ' ' + truncate(row.Notes, {length: notesLength}) : ''}${statusEnd}`
   try {
     await client.post('statuses/update', {status})
   } catch (err) {
