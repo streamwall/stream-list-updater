@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const truncate = require('lodash/truncate')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const Twitter = require('twitter')
 const fetch = require('node-fetch')
@@ -28,7 +29,7 @@ async function announce(row) {
     },
     body: JSON.stringify({
       username: 'New Stream',
-      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''} <${row.Link}>`,
+      content: `**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + truncate(row.Notes, {length: 60}) : ''} <${row.Link}>`,
     }),
   })
 }
