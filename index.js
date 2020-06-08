@@ -148,7 +148,7 @@ async function updateRow(row, page) {
 
   const timestamp = moment().tz(TIMEZONE).format(DATE_FORMAT)
   row['Last Checked (CST)'] = timestamp
-  if (result.isLive) {
+  if (result.isLive || !row['Last Live (CST)']) {
     row['Last Live (CST)'] = timestamp
   }
 
