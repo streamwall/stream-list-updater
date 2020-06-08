@@ -5,7 +5,7 @@ const moment = require('moment-timezone')
 
 const SHEET_ID = process.env.SHEET_ID
 const TAB_NAME = process.env.TAB_NAME
-const CREDS = require('./creds.json')
+const SHEET_CREDS = require('./gs-creds.json')
 
 const {doWithRetry, sleep} = require('./utils')
 
@@ -28,7 +28,7 @@ const urlRe = /https?:\/\/[^ ]+/g
 
 async function main() {
   const doc = new GoogleSpreadsheet(SHEET_ID)
-  await doc.useServiceAccountAuth(CREDS)
+  await doc.useServiceAccountAuth(SHEET_CREDS)
   await doc.loadInfo()
   const sheet = Object.values(doc.sheetsById).find(s => s.title === TAB_NAME)
   await sheet.loadHeaderRow()

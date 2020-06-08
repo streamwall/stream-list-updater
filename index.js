@@ -13,7 +13,7 @@ const PREV_STREAMS_TAB_NAME = process.env.PREV_STREAMS_TAB_NAME
 const STREAM_EXPIRE_SECONDS = process.env.STREAM_EXPIRE_SECONDS
 const UPDATE_SECONDS = process.env.UPDATE_SECONDS
 const CHECK_INTERVAL = process.env.CHECK_INTERVAL * 1000
-const CREDS = require('./creds.json')
+const SHEET_CREDS = require('./gs-creds.json')
 const YT_API_KEY = process.env.YT_API_KEY
 const IG_USER = process.env.IG_USER
 const IG_PASS = process.env.IG_PASS
@@ -166,7 +166,7 @@ async function runUpdate() {
   const browser = await puppeteer.launch({headless: false})
 
   const prevStreamsDoc = new GoogleSpreadsheet(PREV_STREAMS_SHEET_ID)
-  await prevStreamsDoc.useServiceAccountAuth(CREDS)
+  await prevStreamsDoc.useServiceAccountAuth(SHEET_CREDS)
   await prevStreamsDoc.loadInfo()
   const prevStreamsSheet = Object.values(prevStreamsDoc.sheetsById).find(s => s.title === PREV_STREAMS_TAB_NAME)
   await prevStreamsSheet.loadHeaderRow()
@@ -242,7 +242,7 @@ async function runUpdate() {
     const [sheetID, ...tabNames] = docInfo
 
     const doc = new GoogleSpreadsheet(sheetID)
-    await doc.useServiceAccountAuth(CREDS)
+    await doc.useServiceAccountAuth(SHEET_CREDS)
     await doc.loadInfo()
 
     const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))

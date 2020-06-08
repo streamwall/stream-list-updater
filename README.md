@@ -40,6 +40,14 @@ SHEET_ID=<sheets id from url> TAB_NAME=... npm run twitch-urls
 
 ### Automatically publish moderated streams and announce to Discord
 
+To set up Twitter bot:
+
+1. Create a [new Twitter app key](https://apps.twitter.com/app/new), setting callback URL to http://localhost:3000/callback.
+1. Authenticate with Twitter:
+   1. Run `node ./scripts/setupTwitter.js CONSUMER_KEY CONSUMER_SECRET > ../dogpack-keys.prod.json` and open http://localhost:3000 in a web browser.
+   1. Click the link and authorize your Twitter app.
+   1. Save the output to `twitter-creds.json`.
+
 ```
 FROM_SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' TO_SHEET_ID=<sheets id from url> TO_TAB_NAME=... ANNOUNCE_WEBHOOK_URL=<webhook url from discord> ANNOUNCE_DETAILS_WEBHOOK_URL=<webhook url from discord> SLEEP_SECONDS=30 npm run link-publisher
 ```

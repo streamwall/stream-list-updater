@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const {GoogleSpreadsheet} = require('google-spreadsheet')
+const Twitter = require('twitter')
 const fetch = require('node-fetch')
 
 const FROM_SHEETS = process.env.FROM_SHEETS.split('|').map(s => s.split(','))
@@ -8,7 +9,14 @@ const TO_TAB_NAME = process.env.TO_TAB_NAME
 const ANNOUNCE_WEBHOOK_URL = process.env.ANNOUNCE_WEBHOOK_URL
 const ANNOUNCE_DETAILS_WEBHOOK_URL = process.env.ANNOUNCE_DETAILS_WEBHOOK_URL
 const SLEEP_SECONDS = process.env.SLEEP_SECONDS
-const CREDS = require('./creds.json')
+const SHEET_CREDS = require('./gs-creds.json')
+
+let TWITTER_CREDS
+try {
+  TWITTER_CREDS = require('./twitter-creds.json')
+} catch (err) {
+  console.warn('failed to load twitter credentials', err)
+}
 
 const {doWithRetry, sleep, getLinkInfo} = require('./utils')
 
@@ -26,32 +34,47 @@ async function announce(row) {
 }
 
 async function announceDetails(row, linkInfo) {
-  if (ANNOUNCE_DETAILS_WEBHOOK_URL) {
-    const {streamType, embed} = linkInfo
+  if (!ANNOUNCE_DETAILS_WEBHOOK_URL) {
+    return
+  }
+  const {streamType, embed} = linkInfo
 
-    const msgParts = []
-    msgParts.push(`**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''}`)
-    msgParts.push(`:link: <${row.Link}>`)
-    if (embed) {
-      msgParts.push(`:gear: <${embed}>`)
-    }
+  const msgParts = []
+  msgParts.push(`**${row.Source}** — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''}`)
+  msgParts.push(`:link: <${row.Link}>`)
+  if (embed) {
+    msgParts.push(`:gear: <${embed}>`)
+  }
 
-    await fetch(ANNOUNCE_DETAILS_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: 'New Stream',
-        content: msgParts.join('\n'),
-      }),
-    })
+  await fetch(ANNOUNCE_DETAILS_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: 'New Stream',
+      content: msgParts.join('\n'),
+    }),
+  })
+}
+
+async function tweet(row) {
+  if (!TWITTER_CREDS) {
+    return
+  }
+
+  const client = new Twitter(TWITTER_CREDS)
+  const status = `${row.Source} — ${row.City}, ${row.State} (${row.Type}, ${row.View})${row.Notes ? ' ' + row.Notes : ''}\n${row.Link}`
+  try {
+    await client.post('statuses/update', {status})
+  } catch (err) {
+    console.error('failed to tweet', row.Link, err)
   }
 }
 
 async function runPublish() {
   const toDoc = new GoogleSpreadsheet(TO_SHEET_ID)
-  await toDoc.useServiceAccountAuth(CREDS)
+  await toDoc.useServiceAccountAuth(SHEET_CREDS)
   await toDoc.loadInfo()
   const toSheet = Object.values(toDoc.sheetsById).find(s => s.title === TO_TAB_NAME)
   await toSheet.loadHeaderRow()
@@ -63,7 +86,7 @@ async function runPublish() {
     const [sheetID, ...tabNames] = docInfo
 
     const doc = new GoogleSpreadsheet(sheetID)
-    await doc.useServiceAccountAuth(CREDS)
+    await doc.useServiceAccountAuth(SHEET_CREDS)
     await doc.loadInfo()
 
     const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
@@ -97,6 +120,7 @@ async function runPublish() {
 
         await announce(row)
         await announceDetails(row, linkInfo)
+        await tweet(row)
 
         console.log(`published ${row.Link}`)
       }
