@@ -65,7 +65,7 @@ async function tweet(row) {
   }
 
   const client = new Twitter(TWITTER_CREDS)
-  const status = `${row.Source} — #${row.City.toLowerCase()} #${row.State.toLowerCase()} #live #${row.Type.toLowerCase()} #${row.View.toLowerCase()} ${row.Notes ? ' ' + row.Notes : ''}\n${row.Link}`
+  const status = `${row.Source} #${row.City.toLowerCase()} #${row.State.toLowerCase()} #live #${row.Type.toLowerCase()} #${row.View.toLowerCase()} ${row.Notes ? ' ' + row.Notes : ''}\n${row.Link}`
   try {
     await client.post('statuses/update', {status})
   } catch (err) {
