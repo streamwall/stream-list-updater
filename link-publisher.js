@@ -88,8 +88,8 @@ async function runPublish() {
 
   const flaggedSheet = await getSheetTab(SHEET_CREDS, FLAGGED_SHEET_ID, FLAGGED_TAB_NAME)
   const flaggedRows = await doWithRetry(() => flaggedSheet.getRows())
-  const flaggedSources = new Set(flaggedRows.map(r => r.Source))
-  const flaggedURLs = new Set(flaggedRows.map(r => r.Link))
+  const flaggedSources = new Set(flaggedRows.map(r => r.Source.toLowerCase()))
+  const flaggedURLs = new Set(flaggedRows.map(r => r.Link.toLowerCase()))
 
   for (const docInfo of FROM_SHEETS) {
     const [sheetID, ...tabNames] = docInfo
@@ -115,7 +115,7 @@ async function runPublish() {
           row.Link = linkInfo.normalizedURL
         }
 
-        if (flaggedURLs.has(row.Link) || flaggedSources.has(row.Source)) {
+        if (flaggedURLs.has(row.Link.toLowerCase()) || flaggedSources.has(row.Source.toLowerCase())) {
           row.Published = 'flagged'
           await doWithRetry(() => row.save())
           console.log(`skipped flagged ${row.Link}`)
