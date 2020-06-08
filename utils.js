@@ -1,5 +1,6 @@
 const {promisify} = require('util')
 const fetch = require('node-fetch')
+const {GoogleSpreadsheet} = require('google-spreadsheet')
 
 const sleep = module.exports.sleep = promisify(setTimeout)
 
@@ -72,4 +73,13 @@ module.exports.getLinkInfo = async function getLinkInfo(url) {
     return {streamType, embed, normalizedURL}
   }
   return {streamType}
+}
+
+module.exports.getSheetTab = async function getSheetTab(creds, sheetID, tabName) {
+  const doc = new GoogleSpreadsheet(sheetID)
+  await doc.useServiceAccountAuth(creds)
+  await doc.loadInfo()
+  const sheet = Object.values(doc.sheetsById).find(s => s.title === tabName)
+  await sheet.loadHeaderRow()
+  return sheet
 }

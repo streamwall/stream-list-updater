@@ -7,6 +7,8 @@ const fetch = require('node-fetch')
 const FROM_SHEETS = process.env.FROM_SHEETS.split('|').map(s => s.split(','))
 const TO_SHEET_ID = process.env.TO_SHEET_ID
 const TO_TAB_NAME = process.env.TO_TAB_NAME
+const FLAGGED_SHEET_ID = process.env.FLAGGED_SHEET_ID
+const FLAGGED_TAB_NAME = process.env.FLAGGED_TAB_NAME
 const ANNOUNCE_WEBHOOK_URL = process.env.ANNOUNCE_WEBHOOK_URL
 const ANNOUNCE_DETAILS_WEBHOOK_URL = process.env.ANNOUNCE_DETAILS_WEBHOOK_URL
 const SLEEP_SECONDS = process.env.SLEEP_SECONDS
@@ -19,7 +21,7 @@ try {
   console.warn('failed to load twitter credentials', err)
 }
 
-const {doWithRetry, sleep, getLinkInfo} = require('./utils')
+const {doWithRetry, sleep, getLinkInfo, getSheetTab} = require('./utils')
 
 async function announce(row) {
   await fetch(ANNOUNCE_WEBHOOK_URL, {
@@ -80,14 +82,14 @@ async function tweet(row) {
 }
 
 async function runPublish() {
-  const toDoc = new GoogleSpreadsheet(TO_SHEET_ID)
-  await toDoc.useServiceAccountAuth(SHEET_CREDS)
-  await toDoc.loadInfo()
-  const toSheet = Object.values(toDoc.sheetsById).find(s => s.title === TO_TAB_NAME)
-  await toSheet.loadHeaderRow()
-
+  const toSheet = await getSheetTab(SHEET_CREDS, TO_SHEET_ID, TO_TAB_NAME)
   const toRows = await doWithRetry(() => toSheet.getRows())
   const publishedURLs = new Set(toRows.map(r => r.Link))
+
+  const flaggedSheet = await getSheetTab(SHEET_CREDS, FLAGGED_SHEET_ID, FLAGGED_TAB_NAME)
+  const flaggedRows = await doWithRetry(() => flaggedSheet.getRows())
+  const flaggedSources = new Set(flaggedRows.map(r => r.Source))
+  const flaggedURLs = new Set(flaggedRows.map(r => r.Link))
 
   for (const docInfo of FROM_SHEETS) {
     const [sheetID, ...tabNames] = docInfo
@@ -111,6 +113,13 @@ async function runPublish() {
         const linkInfo = await getLinkInfo(row.Link)
         if (linkInfo.normalizedURL) {
           row.Link = linkInfo.normalizedURL
+        }
+
+        if (flaggedURLs.has(row.Link) || flaggedSources.has(row.Source)) {
+          row.Published = 'flagged'
+          await doWithRetry(() => row.save())
+          console.log(`skipped flagged ${row.Link}`)
+          continue
         }
 
         if (publishedURLs.has(row.Link)) {

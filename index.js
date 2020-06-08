@@ -21,7 +21,7 @@ const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
 const SLEEP_SECONDS = 30
 
-const {sleep, getStreamType, getLinkInfo} = require('./utils')
+const {sleep, getStreamType, getLinkInfo, getSheetTab} = require('./utils')
 
 class CheckError extends Error {
   constructor({captcha, retryable}, ...params) {
@@ -165,11 +165,7 @@ async function runUpdate() {
   const queue = new PQueue({concurrency: 1, interval: CHECK_INTERVAL, intervalCap: 1, autoStart: false})
   const browser = await puppeteer.launch({headless: false})
 
-  const prevStreamsDoc = new GoogleSpreadsheet(PREV_STREAMS_SHEET_ID)
-  await prevStreamsDoc.useServiceAccountAuth(SHEET_CREDS)
-  await prevStreamsDoc.loadInfo()
-  const prevStreamsSheet = Object.values(prevStreamsDoc.sheetsById).find(s => s.title === PREV_STREAMS_TAB_NAME)
-  await prevStreamsSheet.loadHeaderRow()
+  const prevStreamsSheet = await getSheetTab(SHEET_CREDS, PREV_STREAMS_SHEET_ID, PREV_STREAMS_TAB_NAME)
 
   function enqueue(promise) {
     queue.add(promise).catch(err => {
