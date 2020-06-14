@@ -38,7 +38,7 @@ const getStreamType = module.exports.getStreamType = function getStreamType(urlS
 
   if (host === 'youtube.com' || host === 'youtu.be') {
     return 'YouTube'
-  } else if (host === 'facebook.com') {
+  } else if (host === 'facebook.com' || host === 'm.facebook.com') {
     return 'Facebook'
   } else if (host === 'twitch.tv') {
     return 'Twitch'
