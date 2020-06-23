@@ -138,10 +138,6 @@ async function getRow(sheet, offset) {
 }
 
 async function updateRow(row, page) {
-  if (row['Disable Status Checks']) {
-    return row
-  }
-
   const {Link} = row
 
   const check = checkForStream(row.Link)
@@ -269,6 +265,10 @@ async function runUpdate() {
             console.log('skipping recently updated', row.Link)
             continue
           }
+        }
+        if (row['Disable Status Checks']) {
+          console.log('skipping disabled row', row.Link)
+          continue
         }
         enqueue(tryRow(sheet, offset))
       }
