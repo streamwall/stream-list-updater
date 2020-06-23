@@ -101,13 +101,20 @@ const checkFBLive = async function(page, url) {
   const {embed} = await getLinkInfo(url)
   await page.goto(embed + '&show_text=1')
   const html = await page.content()
+  const isUnknown = html.includes('This video can&#039;t be embedded.')
   const isLive = html.includes('is_live_stream":true,')
   const title$ = await page.$('[data-testid=post_message')
   let title
   if (title$) {
     title = await title$.evaluate(n => n.textContent)
   }
-  return {url, isLive, title, streamType, embed}
+  const result = {url, title, streamType, embed}
+  if (isUnknown) {
+    result.status = 'Unknown'
+  } else {
+    result.isLive = isLive
+  }
+  return result
 }
 
 function checkForStream(url) {
