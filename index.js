@@ -138,6 +138,10 @@ async function getRow(sheet, offset) {
 }
 
 async function updateRow(row, page) {
+  if (row['Disable Status Checks']) {
+    return row
+  }
+
   const {Link} = row
 
   const check = checkForStream(row.Link)
