@@ -19,7 +19,7 @@ const IG_USER = process.env.IG_USER
 const IG_PASS = process.env.IG_PASS
 const TIMEZONE = 'America/Chicago'
 const DATE_FORMAT = 'M/D/YY HH:mm:ss'
-const SLEEP_SECONDS = 30
+const SLEEP_SECONDS = process.env.SLEEP_SECONDS
 
 const {sleep, getStreamType, getLinkInfo, getSheetTab} = require('./utils')
 
