@@ -48,5 +48,5 @@ To set up Twitter bot:
    1. Click the link and authorize your Twitter app.
 
 ```
-FROM_SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' TO_SHEET_ID=<sheets id from url> TO_TAB_NAME=... FLAGGED_SHEET_ID=<sheets id from ulr> FLAGGED_TAB_NAME=... ANNOUNCE_WEBHOOK_URL=<webhook url from discord> ANNOUNCE_DETAILS_WEBHOOK_URL=<webhook url from discord> SLEEP_SECONDS=30 npm run link-publisher
+FROM_SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' TO_SHEET_ID=<sheets id from url> TO_TAB_NAME=... FLAGGED_SHEET_ID=<sheets id from ulr> FLAGGED_TAB_NAME=... PUBLISHED_COL_NAME=... VETTED_COL_NAME=... ANNOUNCE_WEBHOOK_URL=<webhook url from discord> ANNOUNCE_DETAILS_WEBHOOK_URL=<webhook url from discord> SLEEP_SECONDS=30 npm run link-publisher
 ```

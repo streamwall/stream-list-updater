@@ -10,6 +10,8 @@ const TO_SHEET_ID = process.env.TO_SHEET_ID
 const TO_TAB_NAME = process.env.TO_TAB_NAME
 const FLAGGED_SHEET_ID = process.env.FLAGGED_SHEET_ID
 const FLAGGED_TAB_NAME = process.env.FLAGGED_TAB_NAME
+const PUBLISHED_COL_NAME = process.env.PUBLISHED_COL_NAME
+const VETTED_COL_NAME = process.env.VETTED_COL_NAME
 const ANNOUNCE_WEBHOOK_URL = process.env.ANNOUNCE_WEBHOOK_URL
 const ANNOUNCE_DETAILS_WEBHOOK_URL = process.env.ANNOUNCE_DETAILS_WEBHOOK_URL
 const SLEEP_SECONDS = process.env.SLEEP_SECONDS
@@ -103,11 +105,11 @@ async function runPublish() {
     for (const sheet of sheets) {
       const rows = await doWithRetry(() => sheet.getRows())
       for (const row of rows) {
-        if (!row.Link || row.Published !== '') {
+        if (!row.Link || row[PUBLISHED_COL_NAME] !== '') {
           continue
         }
 
-        if (row.hasOwnProperty('Vetted') && row.Vetted !== 'x') {
+        if (row.hasOwnProperty(VETTED_COL_NAME) && row[VETTED_COL_NAME] !== 'x') {
           continue
         }
 
@@ -117,21 +119,21 @@ async function runPublish() {
         }
 
         if (flaggedURLs.has(toLower(row.Link)) || flaggedSources.has(toLower(row.Source))) {
-          row.Published = 'flagged'
+          row[PUBLISHED_COL_NAME] = 'flagged'
           await doWithRetry(() => row.save())
           console.log(`skipped flagged ${row.Link}`)
           continue
         }
 
         if (publishedURLs.has(row.Link)) {
-          row.Published = 'dupe'
+          row[PUBLISHED_COL_NAME] = 'dupe'
           await doWithRetry(() => row.save())
           console.log(`skipped dupe ${row.Link}`)
           continue
         }
 
         await doWithRetry(() => toSheet.addRow(row))
-        row.Published = 'x'
+        row[PUBLISHED_COL_NAME] = 'x'
         await doWithRetry(() => row.save())
         publishedURLs.add(row.Link)
 
