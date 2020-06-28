@@ -11,6 +11,7 @@ const {doWithRetry, sleep} = require('./utils')
 
 const ignoreDisplayNames = new Set([
   'StreamElements',
+  'wokenet',
 ])
 
 const interestingPrefixes = [
