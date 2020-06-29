@@ -113,28 +113,33 @@ async function runPublish() {
           continue
         }
 
+        await sheet.loadCells(row.a1Range)
+        const publishedCell = sheet.getCell(row.rowNumber - 1, sheet.headerValues.indexOf(PUBLISHED_COL_NAME))
+
         const linkInfo = await getLinkInfo(row.Link)
         if (linkInfo.normalizedURL) {
           row.Link = linkInfo.normalizedURL
         }
 
         if (flaggedURLs.has(toLower(row.Link)) || flaggedSources.has(toLower(row.Source))) {
-          row[PUBLISHED_COL_NAME] = 'flagged'
-          await doWithRetry(() => row.save())
+          publishedCell.value = 'flagged'
+          await doWithRetry(() => publishedCell.save())
           console.log(`skipped flagged ${row.Link}`)
           continue
         }
 
         if (publishedURLs.has(row.Link)) {
-          row[PUBLISHED_COL_NAME] = 'dupe'
-          await doWithRetry(() => row.save())
+          publishedCell.value = 'dupe'
+          await doWithRetry(() => publishedCell.save())
           console.log(`skipped dupe ${row.Link}`)
           continue
         }
 
         await doWithRetry(() => toSheet.addRow(row))
-        row[PUBLISHED_COL_NAME] = 'x'
-        await doWithRetry(() => row.save())
+
+        publishedCell.value = 'x'
+        await doWithRetry(() => publishedCell.save())
+
         publishedURLs.add(row.Link)
 
         await announce(row)
