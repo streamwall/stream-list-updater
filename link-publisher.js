@@ -4,6 +4,7 @@ const toLower = require('lodash/toLower')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const Twitter = require('twitter')
 const fetch = require('node-fetch')
+const moment = require('moment-timezone')
 
 const FROM_SHEETS = process.env.FROM_SHEETS.split('|').map(s => s.split(','))
 const TO_SHEET_ID = process.env.TO_SHEET_ID
@@ -16,6 +17,8 @@ const ANNOUNCE_WEBHOOK_URL = process.env.ANNOUNCE_WEBHOOK_URL
 const ANNOUNCE_DETAILS_WEBHOOK_URL = process.env.ANNOUNCE_DETAILS_WEBHOOK_URL
 const SLEEP_SECONDS = process.env.SLEEP_SECONDS
 const SHEET_CREDS = require('./gs-creds.json')
+const TIMEZONE = 'America/Chicago'
+const DATE_FORMAT = 'M/D/YY HH:mm:ss'
 
 let TWITTER_CREDS
 try {
@@ -135,6 +138,7 @@ async function runPublish() {
           continue
         }
 
+        row['Published (CST)'] = moment().tz(TIMEZONE).format(DATE_FORMAT)
         await doWithRetry(() => toSheet.addRow(row))
 
         publishedCell.value = 'x'
