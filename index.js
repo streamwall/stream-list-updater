@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+
+// Load ENV vars first
+const dotenv = require('dotenv')
+dotenv.config()
+
 const keyBy = require('lodash/keyBy')
 const fetch = require('node-fetch')
 const cheerio = require('cheerio')
@@ -17,8 +22,8 @@ const SHEET_CREDS = require('./gs-creds.json')
 const YT_API_KEY = process.env.YT_API_KEY
 const IG_USER = process.env.IG_USER
 const IG_PASS = process.env.IG_PASS
-const TIMEZONE = 'America/Chicago'
-const DATE_FORMAT = 'M/D/YY HH:mm:ss'
+const TIMEZONE = process.env.TIMEZONE
+const DATE_FORMAT = process.env.DATE_FORMAT
 const SLEEP_SECONDS = process.env.SLEEP_SECONDS
 
 const {sleep, getStreamType, getLinkInfo, getSheetTab} = require('./utils')

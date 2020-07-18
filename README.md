@@ -11,6 +11,7 @@ These tools use HTML scraping and hacks to get rapid information out of streamin
 2. Create a [service account](https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication) and grant it edit access to the sheet.
 3. Save the service account JSON key as "creds.json" in this directory.
 4. Get a [YouTube API Key](https://developers.google.com/youtube/v3/getting-started) if you'd like to monitor YouTube live streams.
+5. Copy `sample.env` file to `.env`, customize your settings, and fill in Google Sheets IDs and other information
 
 
 ## Scripts
@@ -27,9 +28,8 @@ This script checks links in the spreadsheet to determine if streams are live or 
 
 A browser window will open and automatically load up stream URLs. You will need to fill in CAPTCHAs occasionally.
 
-
 ```
-UPDATE_SECONDS=<age in seconds to consider check stale> CHECK_INTERVAL=<seconds between individual site checks> SLEEP_SECONDS=30 SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' PREV_STREAMS_SHEET_ID=<sheets id from url> PREV_STREAMS_TAB_NAME=<tabname> STREAM_EXPIRE_SECONDS=14400 YT_API_KEY=... IG_USER=... IG_PASS=... npm start
+npm start
 ```
 
 ### Collect URLs from Twitch chat

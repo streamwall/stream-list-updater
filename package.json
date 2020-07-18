@@ -12,6 +12,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
     "dank-twitch-irc": "^3.2.6",
+    "dotenv": "^8.2.0",
     "google-spreadsheet": "^3.0.11",
     "lodash": "^4.17.15",
     "moment": "^2.26.0",
