@@ -249,9 +249,17 @@ async function runUpdate() {
     await doc.loadInfo()
 
     const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
+    const processedLinks = new Set()
     for (const sheet of sheets) {
       const rows = await sheet.getRows()
       for (const [offset, row] of reverseEntries(rows)) {
+        // Skip duplicates
+        if(processedLinks.has(row.Link)) {
+          console.log(`Found duplicate source ${row.Link}`)
+          continue
+        }
+        processedLinks.add(row.Link)
+
         if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
           console.log('bot disabled. skipping sheet.')
           break
