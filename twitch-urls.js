@@ -2,9 +2,12 @@
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const {ChatClient} = require('dank-twitch-irc')
 const moment = require('moment-timezone')
+const Discord = require('discord.js')
 
 const SHEET_ID = process.env.SHEET_ID
 const TAB_NAME = process.env.TAB_NAME
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN
+const DISCORD_CHANNELS = process.env.DISCORD_CHANNELS && process.env.DISCORD_CHANNELS.split(',')
 const SHEET_CREDS = require('./gs-creds.json')
 
 const {doWithRetry, sleep} = require('./utils')
@@ -34,18 +37,16 @@ async function main() {
   const sheet = Object.values(doc.sheetsById).find(s => s.title === TAB_NAME)
   await sheet.loadHeaderRow()
 
-  const client = new ChatClient()
+  const twitchClient = new ChatClient()
 
-  client.on('ready', () => console.log('connected'))
-  client.on('close', err => {
+  twitchClient.on('ready', () => console.log('connected'))
+  twitchClient.on('close', err => {
     if (err != null) {
       console.error('disconnected due to error', error)
     }
   })
 
-  client.on('PRIVMSG', async msg => {
-    const {messageText, displayName} = msg
-
+  function handleMessage(messageText, displayName) {
     if (ignoreDisplayNames.has(displayName)) {
       return
     }
@@ -69,10 +70,28 @@ async function main() {
         }))
       }
     }
+  }
+
+  twitchClient.on('PRIVMSG', async msg => {
+    const {messageText, displayName} = msg
+    handleMessage(messageText, displayname)
   })
 
-  client.connect()
-  client.join('woke')
+  twitchClient.connect()
+  twitchClient.join('woke')
+
+  if (DISCORD_TOKEN) {
+    const discordClient = new Discord.Client()
+    discordClient.login(DISCORD_TOKEN)
+    discordClient.on("message", (message) => {
+      if (!DISCORD_CHANNELS.includes(message.channel.name)) {
+        return
+      }
+      const messageText = message.content
+      const displayName = message.author.username
+      handleMessage(messageText, displayName)
+    });
+  }
 }
 
 main()

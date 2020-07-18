@@ -32,10 +32,18 @@ A browser window will open and automatically load up stream URLs. You will need 
 UPDATE_SECONDS=<age in seconds to consider check stale> CHECK_INTERVAL=<seconds between individual site checks> SLEEP_SECONDS=30 SHEETS='<sheets id from url>,<tab name 1>,<tab name 2>' PREV_STREAMS_SHEET_ID=<sheets id from url> PREV_STREAMS_TAB_NAME=<tabname> STREAM_EXPIRE_SECONDS=14400 YT_API_KEY=... IG_USER=... IG_PASS=... npm start
 ```
 
-### Collect URLs from Twitch chat
+### Collect URLs from chat
 
 ```
 SHEET_ID=<sheets id from url> TAB_NAME=... npm run twitch-urls
+```
+
+To optionally also collect URLs from a Discord chat:
+1. Set up a Discord app, create a Bot, and obtain a bot token [per these instructions](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)
+2. Specify the `DISCORD_TOKEN` and `DISCORD_CHANNELS` (CSV) in your ENV when running `twitch-urls.js`, e.g.:
+
+```bash
+DISCORD_TOKEN=<bot token> DISCORD_CHANNELS=<channel list, e.g., "livestream-links,general"> SHEET_ID=<sheets id from url> TAB_NAME=... npm run twitch-urls
 ```
 
 ### Automatically publish moderated streams and announce to Discord
