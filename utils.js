@@ -46,6 +46,8 @@ const getStreamType = module.exports.getStreamType = function getStreamType(urlS
     return 'Periscope'
   } else if (host === 'instagram.com') {
     return 'Instagram'
+  } else if (host === 'pig.observer') {
+    return 'Pig Observer'
   }
 }
 

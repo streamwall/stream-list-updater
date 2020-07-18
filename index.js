@@ -129,6 +129,8 @@ function checkForStream(url) {
     return checkPeriscopeLive
   } else if (streamType === 'Instagram') {
     return checkInstagramLive
+  } else if (streamType === 'Pig Observer') {
+    return
   }
 }
 
