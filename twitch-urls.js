@@ -23,6 +23,7 @@ const interestingPrefixes = [
   'www.pscp.tv',
   'www.twitch.tv',
   'twitter.com/i/broadcasts',
+  'pig.observer',
 ]
 
 const urlRe = /https?:\/\/[^ ]+/g
