@@ -83,3 +83,24 @@ module.exports.getSheetTab = async function getSheetTab(creds, sheetID, tabName)
   await sheet.loadHeaderRow()
   return sheet
 }
+
+function* reverseKeys(arr) {
+  let key = arr.length - 1;
+
+  while (key >= 0) {
+    yield key;
+    key -= 1;
+  }
+}
+
+function* reverseValues(arr) {
+  for (let key of reverseKeys(arr)) {
+    yield arr[key];
+  }
+}
+
+module.exports.reverseEntries = function* reverseEntries(arr) {
+  for (let key of reverseKeys(arr)) {
+    yield [key, arr[key]];
+  }
+}
