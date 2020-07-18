@@ -172,7 +172,12 @@ async function runUpdate() {
   const queue = new PQueue({concurrency: 1, interval: CHECK_INTERVAL, intervalCap: 1, autoStart: false})
   const browser = await puppeteer.launch({headless: false})
 
-  const prevStreamsSheet = await getSheetTab(SHEET_CREDS, PREV_STREAMS_SHEET_ID, PREV_STREAMS_TAB_NAME)
+  try {
+    var prevStreamsSheet = await getSheetTab(SHEET_CREDS, PREV_STREAMS_SHEET_ID, PREV_STREAMS_TAB_NAME)
+  } catch(err) {
+    console.log("Could not getSheetTab in runUpdate: ", err)
+    return
+  }
 
   function enqueue(promise) {
     queue.add(promise).catch(err => {
@@ -235,7 +240,9 @@ async function runUpdate() {
         enqueue(tryRow(sheet, offset, tries + 1))
         return
       } finally {
-        await page.close()
+        if (page && !page.isClosed()) {
+          await page.close()
+        }
       }
       console.log('updated', row.Link, row.Status, `(remaining: ${queue.size})`)
     }
@@ -244,13 +251,24 @@ async function runUpdate() {
   for (const docInfo of SHEETS) {
     const [sheetID, ...tabNames] = docInfo
 
-    const doc = new GoogleSpreadsheet(sheetID)
-    await doc.useServiceAccountAuth(SHEET_CREDS)
-    await doc.loadInfo()
+    try {
+      var doc = new GoogleSpreadsheet(sheetID)
+      await doc.useServiceAccountAuth(SHEET_CREDS)
+      await doc.loadInfo()
+    } catch(err) {
+      console.log("Couldn't fetch sheet: ", err)
+      continue
+    }
 
     const sheets = Object.values(doc.sheetsById).filter(s => tabNames.includes(s.title))
     for (const sheet of sheets) {
-      const rows = await sheet.getRows()
+      try {
+        var rows = await sheet.getRows()
+      } catch(err) {
+        console.log("Couldn't fetch sheet rows: ", err)
+        continue
+      }
+
       for (const [offset, row] of rows.entries()) {
         if (row.Source === '🤖 Bot enabled:' && row.Platform !== 'YES') {
           console.log('bot disabled. skipping sheet.')
