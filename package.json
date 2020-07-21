@@ -10,6 +10,7 @@
     "link-publisher": "node link-publisher.js"
   },
   "dependencies": {
+    "@sindresorhus/slugify": "^1.1.0",
     "cheerio": "^1.0.0-rc.3",
     "dank-twitch-irc": "^3.2.6",
     "google-spreadsheet": "^3.0.11",
