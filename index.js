@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const fs = require('fs');
 const keyBy = require('lodash/keyBy')
 const fetch = require('node-fetch')
 const cheerio = require('cheerio')
@@ -8,6 +9,7 @@ const puppeteer = require('puppeteer')
 const devices = require('puppeteer/DeviceDescriptors')
 const iPhoneX = devices.devicesMap['iPhone X']
 const {default: PQueue} = require('p-queue')
+const slugify = require('@sindresorhus/slugify');
 
 const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
 const PREV_STREAMS_SHEET_ID = process.env.PREV_STREAMS_SHEET_ID
@@ -198,6 +200,39 @@ async function runUpdate() {
 
   const prevStreamsSheet = await getSheetTab(SHEET_CREDS, PREV_STREAMS_SHEET_ID, PREV_STREAMS_TAB_NAME)
 
+  async function getCookiePath(url) {
+    const streamType = getStreamType(url)
+    let cookieSlug = url
+    try {
+      cookieSlug = slugify(streamType)
+    } catch {
+      console.log("Could not generate cookie file slug for url; slugifying URL: ", url)
+      return `./cookies-${slugify(url)}.json`
+    }
+    return `./cookies-${cookieSlug}.json`
+  }
+
+  async function saveCookies(page) {
+    if (!page || page.url() === 'about:blank') {
+      return
+    }
+    const cookiePath = await getCookiePath(page.url())
+    const cookies = await page.cookies();
+    await fs.promises.writeFile(cookiePath, JSON.stringify(cookies, null, 2));
+  }
+
+  async function loadCookies(page, url) {
+    if (!page) {
+      return
+    }
+    const cookiePath = await getCookiePath(url)
+    if (fs.existsSync(cookiePath)) {
+      const cookiesString = await fs.promises.readFile(cookiePath);
+      const cookies = JSON.parse(cookiesString);
+      await page.setCookie(...cookies);
+    }
+  }
+
   function enqueue(promise) {
     queue.add(promise).catch(err => {
       console.error('unhandled fatal error', err)
@@ -218,6 +253,7 @@ async function runUpdate() {
           return
         }
 
+        await loadCookies(page, row.Link)
         await updateRow(row, page)
 
         // Verify that row is untouched before updating it
@@ -233,6 +269,7 @@ async function runUpdate() {
             console.log('expiring row', row.Link)
             await prevStreamsSheet.addRow(row)
             await row.delete()
+            await saveCookies(page)
             return
           }
         }
@@ -259,7 +296,10 @@ async function runUpdate() {
         enqueue(tryRow(sheet, offset, tries + 1))
         return
       } finally {
-        await page.close()
+        if (page && !page.isClosed()) {
+          await saveCookies(page)
+          await page.close()
+        }
       }
       console.log('updated', row.Link, row.Status, `(remaining: ${queue.size})`)
     }
