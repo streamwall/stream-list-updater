@@ -5,6 +5,8 @@ const cheerio = require('cheerio')
 const {GoogleSpreadsheet} = require('google-spreadsheet')
 const moment = require('moment-timezone')
 const puppeteer = require('puppeteer')
+const devices = require('puppeteer/DeviceDescriptors')
+const iPhoneX = devices.devicesMap['iPhone X']
 const {default: PQueue} = require('p-queue')
 
 const SHEETS = process.env.SHEETS.split('|').map(s => s.split(','))
@@ -98,23 +100,45 @@ const checkYTLive = async function(page, url) {
 
 const checkFBLive = async function(page, url) {
   const streamType = 'Facebook'
+
+  async function getDataFromH3(page) {
+    const selector = 'h3[data-gt=\'{"tn":"C"}\']'
+    let source = ''
+    let isLive = false
+
+    await page.waitForSelector(selector)
+    const h3El = await page.$(selector)
+    if(!h3El) {
+      return { name: '', isLive: false }
+    }
+
+    const re = /(.*) (is|was) live/i
+    const text = await page.$eval(selector, e => { return e.innerText })
+
+    if (re.test(text)) {
+      const matchData = text.match(re)
+      source = matchData[1]
+      isLive = matchData[2] === 'is'
+    }
+
+    return { source, isLive }
+  }
+
+  async function getTitle(page) {
+    const title$ = await page.$('.story_body_container > div > p')
+    let title
+    if (title$) {
+      title = await title$.evaluate(n => n.textContent)
+    }
+  }
+
+  await page.emulate(iPhoneX);
+  await page.goto(url)
+  const {source, isLive} = await getDataFromH3(page)
+  const title = await getTitle(page)
   const {embed} = await getLinkInfo(url)
-  await page.goto(embed + '&show_text=1')
-  const html = await page.content()
-  const isUnknown = html.includes('This video can&#039;t be embedded.')
-  const isLive = html.includes('is_live_stream":true,')
-  const title$ = await page.$('[data-testid=post_message')
-  let title
-  if (title$) {
-    title = await title$.evaluate(n => n.textContent)
-  }
-  const result = {url, title, streamType, embed}
-  if (isUnknown) {
-    result.status = 'Unknown'
-  } else {
-    result.isLive = isLive
-  }
-  return result
+
+  return {url, isLive, title, streamType, embed, source}
 }
 
 function checkForStream(url) {
