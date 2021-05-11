@@ -14,7 +14,7 @@
     "cheerio": "^1.0.0-rc.3",
     "dank-twitch-irc": "^3.2.6",
     "google-spreadsheet": "^3.0.11",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
     "node-fetch": "^2.6.0",
