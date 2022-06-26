@@ -75,11 +75,11 @@ async function tweet(row) {
   const tag = str => `#${str.toLowerCase().replace(' ', '')}`
 
   const client = new Twitter(TWITTER_CREDS)
-  const statusStart = `${row.Source} ${tag(row.City)} ${tag(row.State)} #live ${tag(row.Type)} ${tag(row.View)} `
+  const statusStart = `${row.Source} ${tag(row.City)} ${tag(row.State)} #live`
   const statusEnd = `\n${row.Link}`
   const maxLen = 280
   const notesLength = maxLen - statusStart.length - statusEnd.length - 1
-  const status = `${statusStart}${row.Notes ? ' ' + truncate(row.Notes, {length: notesLength}) : ''}${statusEnd}`
+  const status = `${statusStart}${row.Notes ? '(' + truncate(row.Notes, {length: notesLength}) + ')' : ''}${statusEnd}`
   try {
     await client.post('statuses/update', {status})
   } catch (err) {
