@@ -16,7 +16,7 @@
     "google-spreadsheet": "^3.0.11",
     "lodash": "^4.17.15",
     "moment": "^2.26.0",
-    "moment-timezone": "^0.5.31",
+    "moment-timezone": "^0.5.35",
     "node-fetch": "^2.6.0",
     "oauth": "^0.9.15",
     "p-queue": "^6.4.0",
